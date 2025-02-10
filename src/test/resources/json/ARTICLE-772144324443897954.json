@@ -1,0 +1,138 @@
+{
+  "basic": {
+    "comment_id_str": "22357010",
+    "comment_type": 12,
+    "like_icon": {
+      "action_url": "https://i0.hdslb.com/bfs/garb/item/8f50d9728dd3281e40d525471774674ab7049837.bin",
+      "end_url": "",
+      "id": 2428,
+      "start_url": ""
+    },
+    "rid_str": "22357010"
+  },
+  "id_str": "772144324443897954",
+  "modules": {
+    "module_author": {
+      "decorate": {
+        "card_url": "https://i0.hdslb.com/bfs/garb/item/d544a1f008a61e8fc60429fcad1f623b56eb80b0.png",
+        "fan": {
+          "color": "",
+          "is_fan": false,
+          "num_str": "",
+          "number": 0
+        },
+        "id": 3172,
+        "jump_url": "https://www.bilibili.com/h5/mall/equity-link/home?navhide=1&item_id=3186&part=card&f_source=garb&from=post&isdiy=0",
+        "name": "原神",
+        "type": 1
+      },
+      "face": "https://i2.hdslb.com/bfs/face/fe694b7fc065a31efd3d86a032b46254c3d8d4ed.jpg",
+      "face_nft": false,
+      "following": true,
+      "jump_url": "//space.bilibili.com/6751172/dynamic",
+      "label": "",
+      "mid": 6751172,
+      "name": "朝雾星弦",
+      "official_verify": {
+        "desc": "",
+        "type": 0
+      },
+      "pendant": {
+        "expire": 0,
+        "image": "https://i2.hdslb.com/bfs/garb/item/6d5969a4f02fa1d4e5776072dc9f0b006478e82b.png",
+        "image_enhance": "https://i2.hdslb.com/bfs/garb/item/ff5bde4a6337140b632beffd0cbbaaf927c03ac0.webp",
+        "image_enhance_frame": "https://i2.hdslb.com/bfs/garb/item/a1893352f03d1d6b321d504ba2ae0ecc0ea85647.png",
+        "name": "原神",
+        "pid": 3144
+      },
+      "pub_action": "投稿了文章",
+      "pub_location_text": "",
+      "pub_time": "2023-03-12 18:34",
+      "pub_ts": 1678617260,
+      "type": "AUTHOR_TYPE_NORMAL",
+      "vip": {
+        "avatar_subscript": 1,
+        "avatar_subscript_url": "",
+        "due_date": 1712505600000,
+        "label": {
+          "bg_color": "#FB7299",
+          "bg_style": 1,
+          "border_color": "",
+          "img_label_uri_hans": "",
+          "img_label_uri_hans_static": "https://i0.hdslb.com/bfs/vip/8d4f8bfc713826a5412a0a27eaaac4d6b9ede1d9.png",
+          "img_label_uri_hant": "",
+          "img_label_uri_hant_static": "https://i0.hdslb.com/bfs/activity-plat/static/20220614/e369244d0b14644f5e1a06431e22a4d5/VEW8fCC0hg.png",
+          "label_theme": "annual_vip",
+          "path": "",
+          "text": "年度大会员",
+          "text_color": "#FFFFFF",
+          "use_img_label": true
+        },
+        "nickname_color": "#FB7299",
+        "status": 1,
+        "theme_type": 0,
+        "type": 2
+      }
+    },
+    "module_dynamic": {
+      "additional": null,
+      "desc": null,
+      "major": {
+        "article": {
+          "covers": [
+            "https://i0.hdslb.com/bfs/article/d98f318ff1495b8a5514fca1d9867512ccc67bb3.jpg"
+          ],
+          "desc": "绘画整活：BV1624y1g7cE（记得给视频三连，让UP积极更新哦，非常感谢~）绘画整活，内容虚构，感谢关注，演示整活绘画艺术用途，整活官图不改未授权私图，原图为明日方舟官图，二创整活艺术绘画类，内容仅用于部分细节练习学习绘画艺术演示，不要当真，感谢画师，感谢官方。绘画软件为SAI2，主要使用笔刷为默认笔刷，主要为铅笔，喷枪，水彩笔这三种。画质提升软件为Waifu2x-Extension或者realesrgan-ncnn-vulkan和PS，剪辑软件是用PR 等 （平时忙，不帮私人提升画质，请自行使用软",
+          "id": 22357010,
+          "jump_url": "//www.bilibili.com/read/cv22357010",
+          "label": "1.2万阅读",
+          "title": "【明日方舟】桑葚脚白丝+画质提升"
+        },
+        "type": "MAJOR_TYPE_ARTICLE"
+      },
+      "topic": null
+    },
+    "module_more": {
+      "three_point_items": [
+        {
+          "label": "举报",
+          "type": "THREE_POINT_REPORT"
+        }
+      ]
+    },
+    "module_stat": {
+      "comment": {
+        "count": 34,
+        "forbidden": false
+      },
+      "forward": {
+        "count": 4,
+        "forbidden": false
+      },
+      "like": {
+        "count": 1929,
+        "forbidden": false,
+        "status": false
+      }
+    },
+    "module_fold": {
+      "type": 1,
+      "ids": ["123456"],
+      "statement": "",
+      "users": [
+        {
+          "mid": 6546513136,
+          "name": "AAAAA",
+          "face": "https://asdadada"
+        },
+        {
+          "mid": 23246543,
+          "name": "BBBB",
+          "face": "https://ffffffffff"
+        }
+      ]
+    }
+  },
+  "type": "DYNAMIC_TYPE_ARTICLE",
+  "visible": true
+}
