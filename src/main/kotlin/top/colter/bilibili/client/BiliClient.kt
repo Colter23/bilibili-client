@@ -1,4 +1,4 @@
-package top.colter.bilibili.client
+﻿package top.colter.bilibili.client
 
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
@@ -8,8 +8,8 @@ import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.serialization.json.Json
+import top.colter.bilibili.data.EditCookie
 import top.colter.bilibili.tools.json
-
 
 public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorClient() {
 
@@ -34,38 +34,37 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
         ContentEncoding()
     }
 
-}
+    public suspend fun importCookies(
+        cookies: List<Cookie>,
+        replace: Boolean = true,
+        requestUrl: Url = BiliCookiesStorage.DEFAULT_URL
+    ) {
+        storage.importCookies(cookies, replace, requestUrl)
+    }
 
-//class BiliAccountClient(
-//    override val info: AccountUser,
-//    override val owner: User,
-//    override val cookie: BiliCookiesStorage,
-//    override val authApps: MutableList<BiliApplication>
-//): AbstractKtorClient(), BiliAccount {
-//
-//    override fun initClient() = HttpClient(OkHttp) {
-//        defaultRequest {
-//            header(HttpHeaders.Origin, "https://t.bilibili.com")
-//            header(HttpHeaders.Referrer, "https://t.bilibili.com")
-//        }
-//        install(HttpTimeout) {
-//            socketTimeoutMillis = 10_000L
-//            connectTimeoutMillis = 10_000L
-//            requestTimeoutMillis = 10_000L
-//        }
-//        install(HttpCookies) {
-//            storage = cookie
-//        }
-//        expectSuccess = true
-//        Json { json }
-//        BrowserUserAgent()
-//        ContentEncoding()
-//    }
-//
-//}
+    public suspend fun importEditCookies(
+        cookies: List<EditCookie>,
+        replace: Boolean = true,
+        requestUrl: Url = BiliCookiesStorage.DEFAULT_URL
+    ) {
+        storage.importEditCookies(cookies, replace, requestUrl)
+    }
+
+    public suspend fun importEditCookiesJson(
+        cookiesJson: String,
+        replace: Boolean = true,
+        requestUrl: Url = BiliCookiesStorage.DEFAULT_URL
+    ) {
+        storage.importEditCookiesJson(cookiesJson, replace, requestUrl)
+    }
+
+    public fun exportCookies(): List<Cookie> = storage.exportCookies()
+
+    public fun exportEditCookies(): List<EditCookie> = storage.exportEditCookies()
+
+    public fun exportEditCookiesJson(): String = storage.exportEditCookiesJson()
+}
 
 public suspend inline fun <reified T> BiliClient.getData(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T{
     return getData<BiliCommonResult, T>(url, block)
 }
-
-

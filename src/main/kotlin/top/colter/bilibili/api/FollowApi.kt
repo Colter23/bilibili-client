@@ -4,6 +4,8 @@ import io.ktor.client.request.*
 import top.colter.bilibili.client.BiliClient
 import top.colter.bilibili.client.BiliCommonResult
 import top.colter.bilibili.client.getData
+import top.colter.bilibili.data.dynamic.BiliDynamicList
+import top.colter.bilibili.data.user.BiliRelation
 
 
 /////////////////////////////////////////////
@@ -39,3 +41,32 @@ public const val IS_FOLLOW: String = "$BASE_API/x/relation"
  * **Example:** https://api.bilibili.com/x/relation/modify?fid=487550002&act=1&re_src=11&csrf=xxxx
  */
 public const val FOLLOW_MODIFY: String = "$BASE_API/x/relation/modify"
+
+
+/**
+ * ## 查看用户是否关注
+ *
+ * @param mid 用户ID
+ *
+ * @see IS_FOLLOW
+ */
+public suspend fun BiliClient.isFollow(mid: Long): BiliRelation {
+    return getData(IS_FOLLOW) {
+        parameter("fid", mid)
+    }
+}
+
+
+/**
+ * ## 查看用户是否关注
+ *
+ * @param mid 用户ID
+ *
+ * @see IS_FOLLOW
+ */
+public suspend fun BiliClient.follow(mid: Long): BiliRelation {
+    return getData(FOLLOW_MODIFY) {
+        parameter("fid", mid)
+        parameter("act", 1)
+    }
+}
