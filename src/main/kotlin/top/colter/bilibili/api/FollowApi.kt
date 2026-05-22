@@ -4,7 +4,7 @@ import io.ktor.client.request.*
 import top.colter.bilibili.client.BiliClient
 import top.colter.bilibili.client.BiliCommonResult
 import top.colter.bilibili.client.getData
-import top.colter.bilibili.data.dynamic.BiliDynamicList
+import top.colter.bilibili.client.postResult
 import top.colter.bilibili.data.user.BiliRelation
 
 
@@ -42,6 +42,15 @@ public const val IS_FOLLOW: String = "$BASE_API/x/relation"
  */
 public const val FOLLOW_MODIFY: String = "$BASE_API/x/relation/modify"
 
+public enum class FollowAction(public val value: Int) {
+    FOLLOW(1),
+    UNFOLLOW(2),
+    QUIET_FOLLOW(3),
+    CANCEL_QUIET_FOLLOW(4),
+    BLACKLIST(5),
+    CANCEL_BLACKLIST(6),
+    REMOVE_FAN(7),
+}
 
 /**
  * ## 查看用户是否关注
@@ -58,15 +67,54 @@ public suspend fun BiliClient.isFollow(mid: Long): BiliRelation {
 
 
 /**
- * ## 查看用户是否关注
+ * ## 操作用户关系
  *
  * @param mid 用户ID
+ * @param action 关系操作
+ * @param reSrc 关注来源，默认 11
+ * @param csrf CSRF Token；为空时从 Cookie 中读取 bili_jct
  *
- * @see IS_FOLLOW
+ * @see FOLLOW_MODIFY
  */
-public suspend fun BiliClient.follow(mid: Long): BiliRelation {
-    return getData(FOLLOW_MODIFY) {
-        parameter("fid", mid)
-        parameter("act", 1)
+public suspend fun BiliClient.modifyFollow(
+    mid: Long,
+    action: FollowAction,
+    reSrc: Int = 11,
+    csrf: String? = null,
+): BiliCommonResult {
+    val token = requireCsrf(csrf)
+    return postResult(FOLLOW_MODIFY) {
+        setBody(formBody {
+            append("fid", mid.toString())
+            append("act", action.value.toString())
+            append("re_src", reSrc.toString())
+            append("csrf", token)
+        })
     }
+}
+
+/**
+ * ## 关注用户
+ *
+ * @param mid 用户ID
+ * @param reSrc 关注来源，默认 11
+ * @param csrf CSRF Token；为空时从 Cookie 中读取 bili_jct
+ *
+ * @see FOLLOW_MODIFY
+ */
+public suspend fun BiliClient.follow(mid: Long, reSrc: Int = 11, csrf: String? = null): BiliCommonResult {
+    return modifyFollow(mid, FollowAction.FOLLOW, reSrc, csrf)
+}
+
+/**
+ * ## 取消关注用户
+ *
+ * @param mid 用户ID
+ * @param reSrc 关注来源，默认 11
+ * @param csrf CSRF Token；为空时从 Cookie 中读取 bili_jct
+ *
+ * @see FOLLOW_MODIFY
+ */
+public suspend fun BiliClient.unfollow(mid: Long, reSrc: Int = 11, csrf: String? = null): BiliCommonResult {
+    return modifyFollow(mid, FollowAction.UNFOLLOW, reSrc, csrf)
 }

@@ -68,3 +68,30 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
 public suspend inline fun <reified T> BiliClient.getData(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T{
     return getData<BiliCommonResult, T>(url, block)
 }
+
+/**
+ * ## POST 请求并解析 data
+ *
+ * 使用 [BiliCommonResult] 校验状态码后，将 data/result 字段反序列化为 [T]。
+ */
+public suspend inline fun <reified T> BiliClient.postData(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T {
+    return postData<BiliCommonResult, T>(url, block)
+}
+
+/**
+ * ## GET 请求并返回完整通用响应
+ *
+ * 适用于接口成功时没有 data/result 字段的场景。
+ */
+public suspend fun BiliClient.getResult(url: String, block: HttpRequestBuilder.() -> Unit = {}): BiliCommonResult {
+    return getResult<BiliCommonResult>(url, block)
+}
+
+/**
+ * ## POST 请求并返回完整通用响应
+ *
+ * 适用于接口成功时没有 data/result 字段的场景。
+ */
+public suspend fun BiliClient.postResult(url: String, block: HttpRequestBuilder.() -> Unit = {}): BiliCommonResult {
+    return postResult<BiliCommonResult>(url, block)
+}

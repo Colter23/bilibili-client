@@ -1,11 +1,16 @@
 package top.colter.bilibili.api
 
 import io.ktor.client.request.*
+import jdk.internal.org.jline.utils.Colors.s
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import top.colter.bilibili.client.BiliClient
 import top.colter.bilibili.client.BiliCommonResult
 import top.colter.bilibili.client.getData
-import top.colter.bilibili.data.dynamic.BiliDynamicList
 import top.colter.bilibili.data.live.BiliLiveInfo
+import top.colter.bilibili.data.live.BiliLiveInfoDetail
+import top.colter.bilibili.tools.decode
 
 
 /////////////////////////////////////////////
@@ -19,7 +24,7 @@ import top.colter.bilibili.data.live.BiliLiveInfo
  *
  * **Authorization:** Cookie(SESSDATA)
  *
- * **Response:** [BiliCommonResult] / [LiveList]
+ * **Response:** [BiliCommonResult] / [List<BiliLiveInfo>]
  *
  * **From:** https://www.bilibili.com 动态/直播动态
  *
@@ -34,7 +39,7 @@ public const val LIVE_LIST: String = "$BASE_LIVE_API/xlive/web-ucenter/v1/xfette
  *
  * **Params:** room_id=直播间ID
  *
- * **Response:** [BiliCommonResult] / [BiliLiveInfo]
+ * **Response:** [BiliCommonResult] / [BiliLiveInfoDetail]
  *
  * **From:** https://live.bilibili.com/21811136
  *
@@ -57,13 +62,39 @@ public const val LIVE_STATUS_BATCH: String = "$BASE_LIVE_API/room/v1/Room/get_st
 
 
 /**
+ * ## 获取账号直播列表
+ *
+ * 需要已登录 Cookie。
+ *
+ * @see LIVE_LIST
+ */
+public suspend fun BiliClient.getLiveList(): List<BiliLiveInfo> {
+    return (getData(LIVE_LIST) as JsonObject)["rooms"]!!.decode()
+}
+
+/**
  * ## 获取直播间信息
  * @param roomId 房间ID 支持短号
  *
  * @see LIVE_INFO
  */
-public suspend fun BiliClient.getLiveInfo(roomId: Long): BiliLiveInfo {
+public suspend fun BiliClient.getLiveInfo(roomId: Long): BiliLiveInfoDetail {
     return getData(LIVE_INFO) {
         parameter("room_id", roomId)
+    }
+}
+
+/**
+ * ## 通过 uid 批量获取直播间状态 (!未完善!)
+ *
+ * @param uids 用户 ID 列表
+ *
+ * @see LIVE_STATUS_BATCH
+ */
+public suspend fun BiliClient.getLiveStatusBatch(uids: Iterable<Long>): JsonElement {
+    val uidList = uids.toList()
+    require(uidList.isNotEmpty()) { "uids 不能为空" }
+    return getData(LIVE_STATUS_BATCH) {
+        uidList.forEach { parameter("uids[]", it) }
     }
 }

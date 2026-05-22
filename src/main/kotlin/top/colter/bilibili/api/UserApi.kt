@@ -1,10 +1,10 @@
 package top.colter.bilibili.api
 
 import io.ktor.client.request.*
+import kotlinx.serialization.json.JsonElement
 import top.colter.bilibili.client.BiliClient
 import top.colter.bilibili.client.BiliCommonResult
 import top.colter.bilibili.client.getData
-import top.colter.bilibili.data.live.BiliLiveInfo
 import top.colter.bilibili.data.user.BiliUserInfo
 
 
@@ -92,5 +92,72 @@ public const val SEARCH_USER_VIDEO: String = "$BASE_API/x/space/arc/search"
 public suspend fun BiliClient.getUserInfo(mid: Long): BiliUserInfo {
     return getData(USER_INFO) {
         parameter("mid", mid)
+    }
+}
+
+/**
+ * ## 获取当前账号空间信息 (!未完善!)
+ *
+ * 需要已登录 Cookie。
+ *
+ * @see CURRENT_USER
+ */
+public suspend fun BiliClient.getCurrentUser(): JsonElement {
+    return getData(CURRENT_USER)
+}
+
+/**
+ * ## 获取当前账号导航信息 (!未完善!)
+ *
+ * 需要已登录 Cookie。
+ *
+ * @see CURRENT_USER_NAV
+ */
+public suspend fun BiliClient.getCurrentUserNav(): JsonElement {
+    return getData(CURRENT_USER_NAV)
+}
+
+/**
+ * ## 批量获取用户信息 (!未完善!)
+ *
+ * @param uids 用户 ID 列表
+ *
+ * @see USER_INFO_BATCH
+ */
+public suspend fun BiliClient.getUserInfoBatch(uids: Iterable<Long>): JsonElement {
+    val uidList = uids.toList()
+    require(uidList.isNotEmpty()) { "uids 不能为空" }
+    return getData(USER_INFO_BATCH) {
+        parameter("uids", uidList.joinIds())
+    }
+}
+
+/**
+ * ## 查询用户视频投稿信息 (!未完善!)
+ *
+ * @param mid 用户 ID
+ * @param tid 分区 ID，0 为全部
+ * @param pn 页数
+ * @param ps 每页数量
+ * @param keyword 搜索关键词
+ * @param order 排序方式：pubdate(发布时间)、click(播放量)、stow(收藏量)
+ *
+ * @see SEARCH_USER_VIDEO
+ */
+public suspend fun BiliClient.searchUserVideo(
+    mid: Long,
+    tid: Int = 0,
+    pn: Int = 1,
+    ps: Int = 30,
+    keyword: String = "",
+    order: String = "pubdate",
+): JsonElement {
+    return getData(SEARCH_USER_VIDEO) {
+        parameter("mid", mid)
+        parameter("tid", tid)
+        parameter("pn", pn)
+        parameter("ps", ps)
+        parameter("keyword", keyword)
+        parameter("order", order)
     }
 }

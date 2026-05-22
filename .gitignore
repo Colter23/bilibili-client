@@ -37,3 +37,4 @@ out/
 
 src/test/resources/cookie.json
 src/test/resources/output
+.kotlin

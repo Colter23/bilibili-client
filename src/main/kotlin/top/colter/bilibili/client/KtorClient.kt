@@ -75,6 +75,33 @@ public suspend inline fun <reified T: BaseResult, reified R> AbstractKtorClient.
      return (get<T>(url, block).apply { handleStatus() }.data ?: throw BiliEmptyException()).decode()
 }
 
+/**
+ * ## GET 请求并返回完整响应
+ *
+ * 执行状态码校验，但不强制要求响应中存在 data/result 字段。
+ */
+public suspend inline fun <reified T: BaseResult> AbstractKtorClient.getResult(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T {
+    return get<T>(url, block).apply { handleStatus() }
+}
+
+/**
+ * ## POST 请求并解析 data
+ *
+ * 执行状态码校验后，将 data/result 字段反序列化为 [R]。
+ */
+public suspend inline fun <reified T: BaseResult, reified R> AbstractKtorClient.postData(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): R {
+    return (post<T>(url, block).apply { handleStatus() }.data ?: throw BiliEmptyException()).decode()
+}
+
+/**
+ * ## POST 请求并返回完整响应
+ *
+ * 执行状态码校验，但不强制要求响应中存在 data/result 字段。
+ */
+public suspend inline fun <reified T: BaseResult> AbstractKtorClient.postResult(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T {
+    return post<T>(url, block).apply { handleStatus() }
+}
+
 //    val ss = S::class
 //    val state = ss.sealedSubclasses.mapNotNull { it.objectInstance }
 //    val s = state.find { it.code == res.code }
