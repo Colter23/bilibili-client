@@ -9,6 +9,7 @@ import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.supervisorScope
+import kotlinx.io.IOException
 import top.colter.bilibili.exception.BiliEmptyException
 import top.colter.bilibili.tools.decode
 
@@ -71,6 +72,11 @@ public abstract class AbstractKtorClient : KtorClient {
 
 }
 
+/**
+ * ## GET 请求并解析 data
+ *
+ * 执行状态码校验后，将 data/result 字段反序列化为 [R]。
+ */
 public suspend inline fun <reified T: BaseResult, reified R> AbstractKtorClient.getData(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): R {
      return (get<T>(url, block).apply { handleStatus() }.data ?: throw BiliEmptyException()).decode()
 }

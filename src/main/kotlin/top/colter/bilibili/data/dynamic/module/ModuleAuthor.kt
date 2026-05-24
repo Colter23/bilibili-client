@@ -60,11 +60,11 @@ public data class ModuleAuthor(
     @SerialName("jump_url")
     val jumpUrl: String? = null,
     @SerialName("vip")
-    val vip: BiliVip? = null,
+    override val vip: BiliVip? = null,
     @SerialName("official_verify")
     override val official: OfficialVerify? = null,
     @SerialName("pendant")
     override val pendant: Pendant? = null,
     @SerialName("decorate")
-    override val decorate: Decorate? = null,
+    val decorate: Decorate? = null,
 ): BiliUser

@@ -2,10 +2,15 @@ package top.colter.bilibili.api
 
 import io.ktor.client.request.*
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import top.colter.bilibili.client.BiliClient
 import top.colter.bilibili.client.BiliCommonResult
 import top.colter.bilibili.client.getData
+import top.colter.bilibili.client.getDataWithWbi
 import top.colter.bilibili.data.user.BiliUserInfo
+import top.colter.bilibili.data.user.BiliUserNav
+import top.colter.bilibili.data.user.WbiImg
+import top.colter.bilibili.tools.decode
 
 
 /////////////////////////////////////////////
@@ -13,7 +18,7 @@ import top.colter.bilibili.data.user.BiliUserInfo
 /////////////////////////////////////////////
 
 /**
- * ## 获取指定用户信息
+ * ## 获取指定用户信息(旧)
  *
  * **Method:** GET
  *
@@ -23,9 +28,24 @@ import top.colter.bilibili.data.user.BiliUserInfo
  *
  * **From:** https://space.bilibili.com/487550002/
  *
- * **Example:** https://api.bilibili.com/x/space/wbi/acc/info?mid=487550002
+ * **Example:** https://api.bilibili.com/x/space/acc/info?mid=487550002
  */
-public const val USER_INFO: String = "$BASE_API/x/space/wbi/acc/info"
+public const val USER_INFO: String = "$BASE_API/x/space/acc/info"
+
+/**
+ * ## 获取指定用户信息
+ *
+ * **Method:** GET
+ *
+ * **Params:** mid=用户ID&w_rid=xxx&wts=xxx
+ *
+ * **Response:** [BiliCommonResult] / [BiliUserInfo]
+ *
+ * **From:** https://space.bilibili.com/487550002/
+ *
+ * **Example:** https://api.bilibili.com/x/space/wbi/acc/info?mid=487550002&w_rid=xxx&wts=xxx
+ */
+public const val USER_INFO_WBI: String = "$BASE_API/x/space/wbi/acc/info"
 
 /**
  * ## 获取当前账号信息
@@ -82,6 +102,7 @@ public const val USER_INFO_BATCH: String = "$BASE_API/account/v1/user/cards"
 public const val SEARCH_USER_VIDEO: String = "$BASE_API/x/space/arc/search"
 
 
+
 /**
  * ## 获取指定用户信息
  *
@@ -90,7 +111,7 @@ public const val SEARCH_USER_VIDEO: String = "$BASE_API/x/space/arc/search"
  * @see USER_INFO
  */
 public suspend fun BiliClient.getUserInfo(mid: Long): BiliUserInfo {
-    return getData(USER_INFO) {
+    return getDataWithWbi(USER_INFO_WBI) {
         parameter("mid", mid)
     }
 }
@@ -102,20 +123,32 @@ public suspend fun BiliClient.getUserInfo(mid: Long): BiliUserInfo {
  *
  * @see CURRENT_USER
  */
-public suspend fun BiliClient.getCurrentUser(): JsonElement {
-    return getData(CURRENT_USER)
-}
+//public suspend fun BiliClient.getCurrentUser(): JsonElement {
+//    return getData(CURRENT_USER)
+//}
 
 /**
- * ## 获取当前账号导航信息 (!未完善!)
+ * ## 获取当前账号导航信息
  *
  * 需要已登录 Cookie。
  *
+ * @throws top.colter.bilibili.exception.BiliLoginException 未登录
+ *
  * @see CURRENT_USER_NAV
  */
-public suspend fun BiliClient.getCurrentUserNav(): JsonElement {
+public suspend fun BiliClient.getCurrentUserNav(): BiliUserNav {
     return getData(CURRENT_USER_NAV)
 }
+
+/**
+ * ## 获取Wbi信息
+ *
+ * @see CURRENT_USER_NAV
+ */
+public suspend fun BiliClient.getWbi(): WbiImg {
+    return get<BiliCommonResult>(CURRENT_USER_NAV).data?.decode<JsonObject>()["wbi_img"]!!.decode()
+}
+
 
 /**
  * ## 批量获取用户信息 (!未完善!)

@@ -8,25 +8,6 @@ plugins {
 group = "top.colter.bilibili"
 version = "0.0.1"
 
-//mavenCentralPublish {
-//    useCentralS01()
-//    singleDevGithubProject("Colter23", "bilibili-client")
-//    licenseFromGitHubProject("AGPL-3.0")
-////    workingDir = System.getenv("PUBLICATION_TEMP")?.let { file(it).resolve(projectName) }
-////        ?: buildDir.resolve("publishing-tmp")
-//}
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "top.colter.bilibili"
-            artifactId = "bilibili-client"
-            version = "0.0.1"
-
-            from(components["kotlin"])
-        }
-    }
-}
-
 repositories {
     mavenLocal()
     mavenCentral()
@@ -54,7 +35,41 @@ java {
 
 kotlin {
     explicitApi()
-    target.compilations.all {
-        kotlinOptions.jvmTarget = "11"
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
     }
 }
+
+// 定义源码 JAR 任务
+val sourcesJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
+
+// 定义 Javadoc JAR 任务
+val javadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+    from(tasks.javadoc.get().destinationDir)
+    dependsOn(tasks.javadoc)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "top.colter.bilibili"
+            artifactId = "bilibili-client"
+            version = "0.0.1"
+
+            from(components["kotlin"])
+            artifact(sourcesJar)             // 添加源码包
+            artifact(javadocJar)     // 添加 Javadoc 包
+        }
+    }
+}
+//mavenCentralPublish {
+//    useCentralS01()
+//    singleDevGithubProject("Colter23", "bilibili-client")
+//    licenseFromGitHubProject("AGPL-3.0")
+////    workingDir = System.getenv("PUBLICATION_TEMP")?.let { file(it).resolve(projectName) }
+////        ?: buildDir.resolve("publishing-tmp")
+//}

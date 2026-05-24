@@ -10,6 +10,7 @@ import io.ktor.http.*
 import kotlinx.serialization.json.Json
 import top.colter.bilibili.data.EditCookie
 import top.colter.bilibili.tools.json
+import top.colter.bilibili.tools.md5
 
 public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorClient() {
 
@@ -65,7 +66,16 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
     public fun exportEditCookiesJson(): String = storage.exportEditCookiesJson()
 }
 
-public suspend inline fun <reified T> BiliClient.getData(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T{
+
+/**
+ * ## GET 请求并解析 data
+ *
+ * 使用 [BiliCommonResult] 校验状态码后，将 data/result 字段反序列化为 [T]。
+ */
+public suspend inline fun <reified T> BiliClient.getData(
+    url: String,
+    crossinline block: HttpRequestBuilder.() -> Unit = {}
+): T{
     return getData<BiliCommonResult, T>(url, block)
 }
 
@@ -74,7 +84,10 @@ public suspend inline fun <reified T> BiliClient.getData(url: String, crossinlin
  *
  * 使用 [BiliCommonResult] 校验状态码后，将 data/result 字段反序列化为 [T]。
  */
-public suspend inline fun <reified T> BiliClient.postData(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T {
+public suspend inline fun <reified T> BiliClient.postData(
+    url: String,
+    crossinline block: HttpRequestBuilder.() -> Unit = {}
+): T {
     return postData<BiliCommonResult, T>(url, block)
 }
 
@@ -83,7 +96,10 @@ public suspend inline fun <reified T> BiliClient.postData(url: String, crossinli
  *
  * 适用于接口成功时没有 data/result 字段的场景。
  */
-public suspend fun BiliClient.getResult(url: String, block: HttpRequestBuilder.() -> Unit = {}): BiliCommonResult {
+public suspend fun BiliClient.getResult(
+    url: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): BiliCommonResult {
     return getResult<BiliCommonResult>(url, block)
 }
 
@@ -92,6 +108,19 @@ public suspend fun BiliClient.getResult(url: String, block: HttpRequestBuilder.(
  *
  * 适用于接口成功时没有 data/result 字段的场景。
  */
-public suspend fun BiliClient.postResult(url: String, block: HttpRequestBuilder.() -> Unit = {}): BiliCommonResult {
+public suspend fun BiliClient.postResult(
+    url: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): BiliCommonResult {
     return postResult<BiliCommonResult>(url, block)
+}
+
+
+public suspend fun BiliClient.redirect(url: String): String? {
+    return useHttpClient {
+        it.config {
+            followRedirects = false
+            expectSuccess = false
+        }.head(url)
+    }.headers[HttpHeaders.Location]
 }

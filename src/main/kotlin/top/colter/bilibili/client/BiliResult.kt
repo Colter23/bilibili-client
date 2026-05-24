@@ -6,15 +6,17 @@ import kotlinx.serialization.json.JsonElement
 import top.colter.bilibili.exception.BiliAuthException
 import top.colter.bilibili.exception.BiliBanException
 import top.colter.bilibili.exception.BiliException
+import top.colter.bilibili.exception.BiliLoginException
 import top.colter.bilibili.exception.BiliRequestException
 
 public interface BiliBaseResult: BaseResult {
     override fun handleStatus() {
         when (code) {
             0 -> {}
+            -101 -> throw BiliLoginException("CODE: $code; MESSAGE: $message")
             -412 -> throw BiliBanException("CODE: $code; MESSAGE: $message")
             in -115..-1 -> throw BiliAuthException("CODE: $code; MESSAGE: $message")
-            in -701 .. -304 ->  throw BiliRequestException("CODE: $code; MESSAGE: $message")
+            in -799 .. -304 ->  throw BiliRequestException("CODE: $code; MESSAGE: $message")
             else -> throw BiliException("CODE: $code; MESSAGE: $message")
         }
     }
