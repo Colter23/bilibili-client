@@ -1,4 +1,4 @@
-﻿package top.colter.bilibili.client
+package top.colter.bilibili.client
 
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.CookiesStorage
@@ -25,25 +25,28 @@ import top.colter.bilibili.tools.json
 @Serializable(CookiesStorageSerializer::class)
 public class BiliCookiesStorage(
     storage: AcceptAllCookiesStorage = AcceptAllCookiesStorage()
-) : CookiesStorage {
+) {
 
     public companion object {
-        public val DEFAULT_URL: Url = Url("https://www.bilibili.com/")
+        public const val DEFAULT_URL: String = "https://www.bilibili.com/"
     }
 
     private var storageRef: AcceptAllCookiesStorage = storage
     private val snapshot: MutableList<Cookie> = mutableListOf()
 
-    override suspend fun get(requestUrl: Url): List<Cookie> = storageRef.get(requestUrl)
+    private val ktorStorage: CookiesStorage = object : CookiesStorage {
+        override suspend fun get(requestUrl: Url): List<Cookie> = storageRef.get(requestUrl)
 
-    override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
-        storageRef.addCookie(requestUrl, cookie)
-        upsertSnapshot(cookie)
+        override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
+            putCookie(requestUrl.toString(), cookie)
+        }
+
+        override fun close() {
+            storageRef.close()
+        }
     }
 
-    override fun close() {
-        storageRef.close()
-    }
+    internal fun asCookiesStorage(): CookiesStorage = ktorStorage
 
     public fun initialize(cookies: List<Cookie>) {
         runBlocking { importCookies(cookies = cookies, replace = true) }
@@ -52,7 +55,7 @@ public class BiliCookiesStorage(
     public suspend fun importCookies(
         cookies: List<Cookie>,
         replace: Boolean = true,
-        requestUrl: Url = DEFAULT_URL
+        requestUrl: String = DEFAULT_URL
     ) {
         if (replace) {
             storageRef.close()
@@ -65,7 +68,7 @@ public class BiliCookiesStorage(
     public suspend fun importEditCookies(
         cookies: List<EditCookie>,
         replace: Boolean = true,
-        requestUrl: Url = DEFAULT_URL
+        requestUrl: String = DEFAULT_URL
     ) {
         importCookies(cookies.map { it.toCookie() }, replace, requestUrl)
     }
@@ -73,9 +76,17 @@ public class BiliCookiesStorage(
     public suspend fun importEditCookiesJson(
         cookiesJson: String,
         replace: Boolean = true,
-        requestUrl: Url = DEFAULT_URL
+        requestUrl: String = DEFAULT_URL
     ) {
         importEditCookies(cookiesJson.decode(), replace, requestUrl)
+    }
+
+    public suspend fun getCookies(requestUrl: String = DEFAULT_URL): List<Cookie> {
+        return storageRef.get(Url(requestUrl))
+    }
+
+    public suspend fun addCookie(requestUrl: String = DEFAULT_URL, cookie: Cookie) {
+        putCookie(requestUrl, cookie)
     }
 
     public fun exportCookies(): List<Cookie> = snapshot.toList()
@@ -97,10 +108,15 @@ public class BiliCookiesStorage(
         }
     }
 
-    private fun resolveRequestUrl(defaultUrl: Url, cookie: Cookie): Url {
+    private fun resolveRequestUrl(defaultUrl: String, cookie: Cookie): String {
         val domain = cookie.domain?.removePrefix(".")
         val path = cookie.path?.takeIf { it.isNotBlank() } ?: "/"
-        return if (domain.isNullOrBlank()) defaultUrl else Url("https://$domain$path")
+        return if (domain.isNullOrBlank()) defaultUrl else "https://$domain$path"
+    }
+
+    private suspend fun putCookie(requestUrl: String, cookie: Cookie) {
+        storageRef.addCookie(Url(requestUrl), cookie)
+        upsertSnapshot(cookie)
     }
 }
 

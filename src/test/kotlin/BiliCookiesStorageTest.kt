@@ -1,5 +1,4 @@
-﻿import io.ktor.http.Cookie
-import io.ktor.http.Url
+import io.ktor.http.Cookie
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,12 +9,12 @@ internal class BiliCookiesStorageTest {
     @Test
     fun `import cookies then export cookies`() = runBlocking {
         val storage = top.colter.bilibili.client.BiliCookiesStorage()
-        val requestUrl = Url("https://www.bilibili.com/")
+        val requestUrl = "https://www.bilibili.com/"
 
         val cookie = Cookie(
             name = "SESSDATA",
             value = "abc123",
-            domain = ".bilibili.com",
+            domain = null,
             path = "/",
             secure = true,
             httpOnly = true
@@ -23,7 +22,7 @@ internal class BiliCookiesStorageTest {
 
         storage.importCookies(listOf(cookie), replace = true, requestUrl = requestUrl)
 
-        val cookies = storage.get(requestUrl)
+        val cookies = storage.getCookies(requestUrl)
         assertEquals(1, cookies.size)
         assertEquals("SESSDATA", cookies.first().name)
         assertEquals("abc123", cookies.first().value)

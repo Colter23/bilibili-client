@@ -6,7 +6,8 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.http.Cookie
+import io.ktor.http.HttpHeaders
 import kotlinx.serialization.json.Json
 import top.colter.bilibili.data.EditCookie
 import top.colter.bilibili.tools.json
@@ -27,7 +28,7 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
             requestTimeoutMillis = null
         }
         install(HttpCookies) {
-            storage = this@BiliClient.storage
+            storage = this@BiliClient.storage.asCookiesStorage()
         }
         expectSuccess = true
         Json { json }
@@ -38,7 +39,7 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
     public suspend fun importCookies(
         cookies: List<Cookie>,
         replace: Boolean = true,
-        requestUrl: Url = BiliCookiesStorage.DEFAULT_URL
+        requestUrl: String = BiliCookiesStorage.DEFAULT_URL
     ) {
         storage.importCookies(cookies, replace, requestUrl)
     }
@@ -46,7 +47,7 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
     public suspend fun importEditCookies(
         cookies: List<EditCookie>,
         replace: Boolean = true,
-        requestUrl: Url = BiliCookiesStorage.DEFAULT_URL
+        requestUrl: String = BiliCookiesStorage.DEFAULT_URL
     ) {
         storage.importEditCookies(cookies, replace, requestUrl)
     }
@@ -54,7 +55,7 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
     public suspend fun importEditCookiesJson(
         cookiesJson: String,
         replace: Boolean = true,
-        requestUrl: Url = BiliCookiesStorage.DEFAULT_URL
+        requestUrl: String = BiliCookiesStorage.DEFAULT_URL
     ) {
         storage.importEditCookiesJson(cookiesJson, replace, requestUrl)
     }

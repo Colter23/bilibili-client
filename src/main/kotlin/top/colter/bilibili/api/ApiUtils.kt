@@ -11,11 +11,10 @@ internal fun formBody(block: ParametersBuilder.() -> Unit): FormDataContent = Fo
 
 internal suspend fun BiliClient.requireCsrf(csrf: String?): String {
     if (!csrf.isNullOrBlank()) return csrf
-    return storage.get(BiliCookiesStorage.DEFAULT_URL)
+    return storage.getCookies(BiliCookiesStorage.DEFAULT_URL)
         .firstOrNull { it.name == "bili_jct" }
         ?.value
         ?: throw BiliAuthException("缺少 CSRF Token，请先登录或手动传入 csrf")
 }
 
 internal fun Iterable<Long>.joinIds(): String = joinToString(",")
-
