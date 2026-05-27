@@ -16,7 +16,9 @@ repositories {
 dependencies {
     implementation("io.ktor:ktor-client-okhttp:3.0.3")
     implementation("io.ktor:ktor-client-encoding:3.0.3")
+    implementation("io.ktor:ktor-client-websockets:3.0.3")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("com.cronutils:cron-utils:9.2.0")
 
     testImplementation(kotlin("test"))
