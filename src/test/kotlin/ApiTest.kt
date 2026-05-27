@@ -30,12 +30,12 @@ internal class ApiTest {
     @BeforeAll
     fun initCookie() {
         // 使用 https://cookie-editor.cgagnier.ca/ 导出cookie到 test/resources 目录
-        try {
-            val cookies = loadTestText(fileName = "cookie.json").decode<List<EditCookie>>().map { it.toCookie() }
-            client.storage.initialize(cookies)
-        }catch (e: FileNotFoundException) {
-            logger.error("未找到cookie文件，将无法使用部分api")
-        }
+//        try {
+//            val cookies = loadTestText(fileName = "cookie.json").decode<List<EditCookie>>().map { it.toCookie() }
+//            client.storage.initialize(cookies)
+//        }catch (e: FileNotFoundException) {
+//            logger.error("未找到cookie文件，将无法使用部分api")
+//        }
     }
 
     @Test

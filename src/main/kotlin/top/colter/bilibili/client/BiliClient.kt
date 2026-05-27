@@ -19,8 +19,18 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
 
     override fun initClient(): HttpClient = HttpClient(OkHttp) {
         defaultRequest {
+            header(HttpHeaders.Accept, "application/json, text/plain, */*")
+            header(HttpHeaders.AcceptLanguage, "zh-CN,zh;q=0.9,en;q=0.8")
             header(HttpHeaders.Origin, "https://t.bilibili.com")
-            header(HttpHeaders.Referrer, "https://t.bilibili.com")
+            header(HttpHeaders.Referrer, "https://t.bilibili.com/")
+            header(HttpHeaders.UserAgent, BILI_BROWSER_USER_AGENT)
+            header("sec-ch-ua", BILI_SEC_CH_UA)
+            header("sec-ch-ua-mobile", "?0")
+            header("sec-ch-ua-platform", "\"Windows\"")
+            header("sec-fetch-dest", "empty")
+            header("sec-fetch-mode", "cors")
+            header("sec-fetch-site", "same-site")
+            header("priority", "u=1, i")
         }
         install(HttpTimeout) {
             socketTimeoutMillis = timeout
@@ -32,7 +42,6 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
         }
         expectSuccess = true
         Json { json }
-        BrowserUserAgent()
         ContentEncoding()
     }
 
@@ -66,6 +75,13 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
 
     public fun exportEditCookiesJson(): String = storage.exportEditCookiesJson()
 }
+
+internal const val BILI_BROWSER_USER_AGENT: String =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+
+internal const val BILI_SEC_CH_UA: String =
+    "\"Chromium\";v=\"148\", \"Google Chrome\";v=\"148\", \"Not_A Brand\";v=\"99\""
 
 
 /**

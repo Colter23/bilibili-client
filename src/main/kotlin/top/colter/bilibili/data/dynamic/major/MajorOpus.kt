@@ -9,7 +9,7 @@ import top.colter.bilibili.data.dynamic.content.DynamicDesc
 
 
 /**
- * 新样式 目前观测到只有专栏
+ * 新样式
  *
  * @param title 标题
  * @param jumpUrl 跳转链接
@@ -20,7 +20,7 @@ import top.colter.bilibili.data.dynamic.content.DynamicDesc
 @Serializable
 public data class MajorOpus(
     @SerialName("title")
-    val title: String,
+    val title: String? = null,
     @SerialName("jump_url")
     val jumpUrl: String,
     @SerialName("summary")
@@ -43,7 +43,7 @@ public data class MajorOpusPic(
     @SerialName("height")
     val height: Int,
     @SerialName("size")
-    val size: Double,
+    val size: Double?,
     @SerialName("url")
     @ImgType(ImageType.COVER)
     val url: LazyImage,

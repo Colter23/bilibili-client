@@ -18,10 +18,10 @@ import kotlinx.serialization.encoding.Encoder
  */
 @Serializable
 public data class OfficialVerify(
-    val role: OfficialVerifyRole,
+    val role: OfficialVerifyRole? = null,
     val type: OfficialVerifyType,
     val desc: String = "",
-    val title: String = "",
+    val title: String? = null
 )
 
 /**
