@@ -49,10 +49,10 @@ public data class ModuleAuthor(
     val pubTime: String = "",
     @SerialName("pub_action")
     val pubAction: String = "",
-    @SerialName("face_nft")
-    val faceNFT: Boolean? = null,
-    @SerialName("following")
-    val following: Boolean? = null,
+//    @SerialName("face_nft")
+//    val faceNFT: Boolean? = null,
+//    @SerialName("following")
+//    val following: Boolean? = null,
     @SerialName("icon_badge")
     val iconBadge: IconBadge? = null,
     @SerialName("label")

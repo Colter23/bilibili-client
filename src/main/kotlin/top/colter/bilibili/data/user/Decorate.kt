@@ -35,8 +35,8 @@ public data class Decorate(
     public data class Fan(
         @SerialName("color")
         val color: String,
-        @SerialName("is_fan")
-        val isFan: Boolean,
+//        @SerialName("is_fan")
+//        val isFan: Boolean,
         @SerialName("num_str")
         val numStr: String,
         @SerialName("number")
