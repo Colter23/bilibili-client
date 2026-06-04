@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import top.colter.bilibili.api.getDynamicDetail
 import top.colter.bilibili.api.getLiveStatusBatch
 import top.colter.bilibili.api.getNewDynamic
+import top.colter.bilibili.api.getUserInfoCard
 import top.colter.bilibili.api.getUserNewDynamic
 import top.colter.bilibili.client.BiliClient
 import top.colter.bilibili.data.EditCookie
@@ -78,6 +79,13 @@ internal class ApiTest {
     fun `get live status batch`(): Unit = runBlocking {
         client.getLiveStatusBatch(listOf(524484462)).log { map ->
             appendLine("UID: ${map.keys}")
+        }
+    }
+
+    @Test
+    fun `get user card`(): Unit = runBlocking {
+        client.getUserInfoCard(524484462).log { card ->
+            appendLine("Header: ${card.header.img.url}")
         }
     }
 

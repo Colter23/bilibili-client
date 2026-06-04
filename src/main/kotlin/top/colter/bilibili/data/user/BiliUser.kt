@@ -1,10 +1,14 @@
 package top.colter.bilibili.data.user
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNames
+import top.colter.bilibili.data.ImageType
+import top.colter.bilibili.data.ImgType
 import top.colter.bilibili.data.LazyImage
 
-public interface BiliUser: User{
+public interface BiliUser: User {
     override val mid: Long
     override val name: String
     override val face: LazyImage
@@ -14,40 +18,31 @@ public interface BiliUser: User{
 }
 
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 public data class BiliUserInfo(
     override val mid: Long,
+    @JsonNames("uname")
     override val name: String,
+    @ImgType(ImageType.USER)
     override val face: LazyImage,
     override val pendant: Pendant? = null,
     override val official: OfficialVerify? = null,
-    override val vip: BiliVip?,
-
+    override val vip: BiliVip? = null,
     @SerialName("top_photo_v2")
-    val header: BiliUserHeader,
+    val header: BiliUserHeader? = null,
 ): BiliUser
 
 @Serializable
 public data class BiliUserHeader(
     @SerialName("l_img")
-    val url: String
+    @ImgType(ImageType.USER)
+    val img: LazyImage
 )
 
 @Serializable
-public data class BiliUserNav(
-    override val mid: Long,
-    @SerialName("uname")
-    override val name: String,
-    override val face: LazyImage,
-    override val official: OfficialVerify? = null,
-    override val pendant: Pendant? = null,
-    override val vip: BiliVip? = null
-): BiliUser
-
-
-@Serializable
 public data class BiliUserInfoCard(
-    val card: BiliUser,
+    val card: BiliUserInfo,
     @SerialName("space")
     val header: BiliUserHeader,
 )

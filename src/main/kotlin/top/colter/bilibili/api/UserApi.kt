@@ -8,7 +8,7 @@ import top.colter.bilibili.client.BiliCommonResult
 import top.colter.bilibili.client.getData
 import top.colter.bilibili.client.getDataWithWbi
 import top.colter.bilibili.data.user.BiliUserInfo
-import top.colter.bilibili.data.user.BiliUserNav
+import top.colter.bilibili.data.user.BiliUserInfoCard
 import top.colter.bilibili.data.user.WbiImg
 import top.colter.bilibili.tools.decode
 
@@ -54,7 +54,7 @@ public const val USER_INFO_WBI: String = "$BASE_API/x/space/wbi/acc/info"
  *
  * **Params:** mid=用户ID&photo=true
  *
- * **Response:** [BiliCommonResult] / [BiliUserInfo]
+ * **Response:** [BiliCommonResult] / [BiliUserInfoCard]
  *
  * **Example:** https://api.bilibili.com/x/web-interface/card?mid=1340190821&photo=true
  */
@@ -80,7 +80,7 @@ public const val CURRENT_USER: String = "$BASE_API/x/space/myinfo"
  *
  * **Authorization:** Cookie(SESSDATA)
  *
- * **Response:** [BiliCommonResult] / [BiliUser]
+ * **Response:** [BiliCommonResult] / [BiliUserInfo]
  *
  * **Example:** https://api.bilibili.com/x/web-interface/nav
  */
@@ -121,11 +121,25 @@ public const val SEARCH_USER_VIDEO: String = "$BASE_API/x/space/arc/search"
  *
  * @param mid 用户ID
  *
- * @see USER_INFO
+ * @see USER_INFO_WBI
  */
 public suspend fun BiliClient.getUserInfo(mid: Long): BiliUserInfo {
     return getDataWithWbi(USER_INFO_WBI) {
         parameter("mid", mid)
+    }
+}
+
+/**
+ * ## 获取指定用户信息卡片
+ *
+ * @param mid 用户ID
+ *
+ * @see USER_INFO_CARD
+ */
+public suspend fun BiliClient.getUserInfoCard(mid: Long): BiliUserInfoCard {
+    return getData(USER_INFO_CARD) {
+        parameter("mid", mid)
+        parameter("photo", true)
     }
 }
 
@@ -149,7 +163,7 @@ public suspend fun BiliClient.getUserInfo(mid: Long): BiliUserInfo {
  *
  * @see CURRENT_USER_NAV
  */
-public suspend fun BiliClient.getCurrentUserNav(): BiliUserNav {
+public suspend fun BiliClient.getCurrentUserNav(): BiliUserInfo {
     return getData(CURRENT_USER_NAV)
 }
 
