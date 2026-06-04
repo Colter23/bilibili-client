@@ -37,7 +37,7 @@ public data class BiliUserInfo(
 public data class BiliUserHeader(
     @SerialName("l_img")
     @ImgType(ImageType.USER)
-    val img: LazyImage
+    val image: LazyImage
 )
 
 @Serializable
