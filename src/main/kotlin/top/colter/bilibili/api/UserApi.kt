@@ -48,6 +48,19 @@ public const val USER_INFO: String = "$BASE_API/x/space/acc/info"
 public const val USER_INFO_WBI: String = "$BASE_API/x/space/wbi/acc/info"
 
 /**
+ * ## 获取指定用户信息卡片
+ *
+ * **Method:** GET
+ *
+ * **Params:** mid=用户ID&photo=true
+ *
+ * **Response:** [BiliCommonResult] / [BiliUserInfo]
+ *
+ * **Example:** https://api.bilibili.com/x/web-interface/card?mid=1340190821&photo=true
+ */
+public const val USER_INFO_CARD: String = "$BASE_API/x/web-interface/card"
+
+/**
  * ## 获取当前账号信息
  *
  * **Method:** GET

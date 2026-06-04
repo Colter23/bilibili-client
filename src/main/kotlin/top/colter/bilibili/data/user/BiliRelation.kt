@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
  * @param mid 用户ID
  * @param attribute 用户关系 0(未关注) 2(已关注) 6(已互粉) 128(已拉黑)
  * @param mtime 关注时间
- * @param tag 分组id
+ * @param tag 分组id列表
  * @param special 特别关注标志 0(否) 1(是)
  */
 @Serializable

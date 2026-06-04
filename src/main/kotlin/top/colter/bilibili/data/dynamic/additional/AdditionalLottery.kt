@@ -20,8 +20,6 @@ public data class AdditionalLottery(
     val mid: Long,
     @SerialName("state")
     val state: Int,
-    @SerialName("is_upower_active")
-    val active: Boolean,
     @SerialName("desc")
     val desc: Desc,
     @SerialName("button")

@@ -101,16 +101,17 @@ public suspend fun BiliClient.getLiveInfo(roomId: Long): BiliLiveInfoDetail {
 }
 
 /**
- * ## 通过 uid 批量获取直播间状态 (!未完善!)
+ * ## 通过 uid 批量获取直播间状态
  *
  * @param uids 用户 ID 列表。
  *
  * @see LIVE_STATUS_BATCH
  */
-public suspend fun BiliClient.getLiveStatusBatch(uids: Iterable<Long>): JsonElement {
+public suspend fun BiliClient.getLiveStatusBatch(uids: Iterable<Long>): Map<Long, BiliLiveInfo> {
     val uidList = uids.toList()
     require(uidList.isNotEmpty()) { "uids 不能为空" }
     return getData(LIVE_STATUS_BATCH) {
+        parameter("uids[]", 1)
         uidList.forEach { parameter("uids[]", it) }
     }
 }

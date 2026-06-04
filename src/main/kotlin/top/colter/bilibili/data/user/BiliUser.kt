@@ -21,9 +21,17 @@ public data class BiliUserInfo(
     override val face: LazyImage,
     override val pendant: Pendant? = null,
     override val official: OfficialVerify? = null,
-    override val vip: BiliVip?
+    override val vip: BiliVip?,
+
+    @SerialName("top_photo_v2")
+    val header: BiliUserHeader,
 ): BiliUser
 
+@Serializable
+public data class BiliUserHeader(
+    @SerialName("l_img")
+    val url: String
+)
 
 @Serializable
 public data class BiliUserNav(
@@ -36,3 +44,10 @@ public data class BiliUserNav(
     override val vip: BiliVip? = null
 ): BiliUser
 
+
+@Serializable
+public data class BiliUserInfoCard(
+    val card: BiliUser,
+    @SerialName("space")
+    val header: BiliUserHeader,
+)

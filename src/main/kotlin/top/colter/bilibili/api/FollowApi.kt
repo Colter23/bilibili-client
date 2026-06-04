@@ -13,7 +13,7 @@ import top.colter.bilibili.data.user.BiliRelation
 /////////////////////////////////////////////
 
 /**
- * ## 查询是否关注用户
+ * ## 查询用户与自己关系
  *
  * **Method:** GET
  *
@@ -21,11 +21,11 @@ import top.colter.bilibili.data.user.BiliRelation
  *
  * **Params:** fid=用户ID
  *
- * **Response:** [BiliCommonResult] / [...]
+ * **Response:** [BiliCommonResult] / [BiliRelation]
  *
  * **Example:** https://api.bilibili.com/x/relation?fid=487550002
  */
-public const val IS_FOLLOW: String = "$BASE_API/x/relation"
+public const val RELATION: String = "$BASE_API/x/relation"
 
 /**
  * ## 操作用户关系
@@ -53,14 +53,14 @@ public enum class FollowAction(public val value: Int) {
 }
 
 /**
- * ## 查看用户是否关注
+ * ## 查询用户与自己关系
  *
  * @param mid 用户ID
  *
- * @see IS_FOLLOW
+ * @see RELATION
  */
-public suspend fun BiliClient.isFollow(mid: Long): BiliRelation {
-    return getData(IS_FOLLOW) {
+public suspend fun BiliClient.relation(mid: Long): BiliRelation {
+    return getData(RELATION) {
         parameter("fid", mid)
     }
 }

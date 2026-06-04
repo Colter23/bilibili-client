@@ -6,6 +6,7 @@ import org.junit.jupiter.api.TestInstance
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import top.colter.bilibili.api.getDynamicDetail
+import top.colter.bilibili.api.getLiveStatusBatch
 import top.colter.bilibili.api.getNewDynamic
 import top.colter.bilibili.api.getUserNewDynamic
 import top.colter.bilibili.client.BiliClient
@@ -70,6 +71,13 @@ internal class ApiTest {
         client.getDynamicDetail(741022677854060553L).log {
             appendLine("Type: ${it.type}")
             appendLine("Time: ${it.formatTime}")
+        }
+    }
+
+    @Test
+    fun `get live status batch`(): Unit = runBlocking {
+        client.getLiveStatusBatch(listOf(524484462)).log { map ->
+            appendLine("UID: ${map.keys}")
         }
     }
 

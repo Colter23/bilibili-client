@@ -14,7 +14,7 @@ import top.colter.bilibili.data.user.BiliGroup
 /////////////////////////////////////////////
 
 /**
- * ## 查询关注分组列表
+ * ## 获取关注分组列表
  *
  * **Method:** GET
  *
@@ -72,7 +72,7 @@ public const val DEL_GROUP: String = "$BASE_API/x/relation/tag/del"
 public const val GROUP_USER_MODIFY: String = "$BASE_API/x/relation/tags/addUsers"
 
 /**
- * ## 查询关注分组列表
+ * ## 获取关注分组列表
  *
  * 需要已登录 Cookie。
  *
