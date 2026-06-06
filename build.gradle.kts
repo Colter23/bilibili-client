@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.0.0"
-    kotlin("plugin.serialization") version "2.0.0"
+    kotlin("jvm") version "2.4.0"
+    kotlin("plugin.serialization") version "2.4.0"
 //    id("me.him188.maven-central-publish") version "1.0.0"
     id("maven-publish")
 }
@@ -14,15 +14,15 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-client-okhttp:3.0.3")
-    implementation("io.ktor:ktor-client-encoding:3.0.3")
-    implementation("io.ktor:ktor-client-websockets:3.0.3")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-    implementation("com.cronutils:cron-utils:9.2.0")
+    implementation("io.ktor:ktor-client-okhttp:3.5.0")
+    implementation("io.ktor:ktor-client-encoding:3.5.0")
+    implementation("io.ktor:ktor-client-websockets:3.5.0")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+    implementation("com.cronutils:cron-utils:9.2.1")
 
     testImplementation(kotlin("test"))
-    testImplementation("org.slf4j:slf4j-simple:2.0.5")
+    testImplementation("org.slf4j:slf4j-simple:2.0.17")
     implementation(kotlin("reflect"))
 }
 

@@ -40,7 +40,7 @@ public enum class OfficialVerifyType(public val value: Int, public val text: Str
     INSTITUTION(1, "机构认证")
 }
 
-private object OfficialVerifyTypeSerializer: KSerializer<OfficialVerifyType> {
+public object OfficialVerifyTypeSerializer: KSerializer<OfficialVerifyType> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(OfficialVerifyType::class.qualifiedName!!, PrimitiveKind.STRING)
     override fun deserialize(decoder: Decoder): OfficialVerifyType {
@@ -48,7 +48,7 @@ private object OfficialVerifyTypeSerializer: KSerializer<OfficialVerifyType> {
             OfficialVerifyType.entries.find { it.value == this } ?: throw IndexOutOfBoundsException("认证类型错误: $this")
         }
    }
-    override fun serialize(encoder: Encoder, value: OfficialVerifyType) = encoder.encodeInt(value.value)
+    override fun serialize(encoder: Encoder, value: OfficialVerifyType): Unit = encoder.encodeInt(value.value)
 }
 
 
@@ -80,7 +80,7 @@ public enum class OfficialVerifyRole(public val value: Int, public val text: Str
     INDIVIDUAL_PUBLIC_FIGURE(9, "个人认证-社会知名人士"),
 }
 
-private object OfficialVerifyRoleSerializer: KSerializer<OfficialVerifyRole> {
+public object OfficialVerifyRoleSerializer: KSerializer<OfficialVerifyRole> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(OfficialVerifyRole::class.qualifiedName!!, PrimitiveKind.STRING)
     override fun deserialize(decoder: Decoder): OfficialVerifyRole {
@@ -88,5 +88,5 @@ private object OfficialVerifyRoleSerializer: KSerializer<OfficialVerifyRole> {
             OfficialVerifyRole.entries.find { it.value == this } ?: throw IndexOutOfBoundsException("认证类型错误: $this")
         }
     }
-    override fun serialize(encoder: Encoder, value: OfficialVerifyRole) = encoder.encodeInt(value.value)
+    override fun serialize(encoder: Encoder, value: OfficialVerifyRole): Unit = encoder.encodeInt(value.value)
 }
