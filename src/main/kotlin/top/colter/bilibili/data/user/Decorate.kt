@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.user
+﻿package top.colter.bilibili.data.user
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 
 /**
  * 粉丝套装卡片
@@ -21,7 +21,7 @@ public data class Decorate(
     val name: String,
     @SerialName("card_url")
     @ImgType(ImageType.USER)
-    val image: LazyImage,
+    val image: ImageUrl,
     val fan: Fan? = null,
 ){
     /**

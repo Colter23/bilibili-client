@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.dynamic.major
+﻿package top.colter.bilibili.data.dynamic.major
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 import top.colter.bilibili.data.dynamic.general.Badge
 import top.colter.bilibili.data.dynamic.general.Stats
 
@@ -30,7 +30,7 @@ public data class MajorMediaList(
     val subTitle: String,
     @SerialName("cover")
     @ImgType(ImageType.COVER)
-    val cover: LazyImage,
+    val cover: ImageUrl,
     @SerialName("cover_type")
     val coverType: Int,
     @SerialName("jump_url")

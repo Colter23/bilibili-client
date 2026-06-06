@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.dynamic.major
+﻿package top.colter.bilibili.data.dynamic.major
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 import top.colter.bilibili.data.live.LiveStatus
 import top.colter.bilibili.data.dynamic.general.Badge
 import top.colter.bilibili.data.live.BiliLive
@@ -31,7 +31,7 @@ public data class MajorLive(
     override val title: String,
     @SerialName("cover")
     @ImgType(ImageType.COVER)
-    override val cover: LazyImage,
+    override val cover: ImageUrl,
     @SerialName("desc_first")
     val descFirst: String,
     @SerialName("desc_second")

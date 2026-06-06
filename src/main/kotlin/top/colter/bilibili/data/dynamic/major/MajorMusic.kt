@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.dynamic.major
+﻿package top.colter.bilibili.data.dynamic.major
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 
 
 /**
@@ -24,7 +24,7 @@ public data class MajorMusic(
     val title: String,
     @SerialName("cover")
     @ImgType(ImageType.COVER)
-    val cover: LazyImage,
+    val cover: ImageUrl,
     @SerialName("label")
     val label: String,
     @SerialName("jump_url")

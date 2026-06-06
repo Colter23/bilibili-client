@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.dynamic.module
+﻿package top.colter.bilibili.data.dynamic.module
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 import top.colter.bilibili.data.dynamic.general.IconBadge
 import top.colter.bilibili.data.user.*
 
@@ -42,7 +42,7 @@ public data class ModuleAuthor(
     override val name: String,
     @SerialName("face")
     @ImgType(ImageType.USER)
-    override val face: LazyImage,
+    override val face: ImageUrl,
     @SerialName("pub_ts")
     val pubTs: Long = 0,
     @SerialName("pub_time")

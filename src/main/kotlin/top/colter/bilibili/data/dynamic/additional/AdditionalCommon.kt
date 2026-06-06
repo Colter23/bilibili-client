@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.dynamic.additional
+﻿package top.colter.bilibili.data.dynamic.additional
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 import top.colter.bilibili.data.dynamic.general.Button
 
 
@@ -31,7 +31,7 @@ public data class AdditionalCommon(
     val title: String,
     @SerialName("cover")
     @ImgType(ImageType.OTHER)
-    val cover: LazyImage,
+    val cover: ImageUrl,
     @SerialName("sub_type")
     val subType: String,
     @SerialName("desc1")

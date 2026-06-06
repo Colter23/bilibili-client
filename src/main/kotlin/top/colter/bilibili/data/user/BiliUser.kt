@@ -1,4 +1,4 @@
-package top.colter.bilibili.data.user
+﻿package top.colter.bilibili.data.user
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -6,12 +6,12 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 
 public interface BiliUser: User {
     override val mid: Long
     override val name: String
-    override val face: LazyImage
+    override val face: ImageUrl
     public val pendant: Pendant?
     public val official: OfficialVerify?
     public val vip: BiliVip?
@@ -25,7 +25,7 @@ public data class BiliUserInfo(
     @JsonNames("uname")
     override val name: String,
     @ImgType(ImageType.USER)
-    override val face: LazyImage,
+    override val face: ImageUrl,
     override val pendant: Pendant? = null,
     override val official: OfficialVerify? = null,
     override val vip: BiliVip? = null,
@@ -37,9 +37,9 @@ public data class BiliUserInfo(
 public data class BiliUserHeader(
     @SerialName("l_img")
     @ImgType(ImageType.USER)
-    val image: LazyImage
+    val image: ImageUrl
 ) {
-    public val img: LazyImage
+    public val img: ImageUrl
         get() = image
 }
 

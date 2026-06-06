@@ -1,6 +1,7 @@
 package top.colter.bilibili.tools
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -24,8 +25,8 @@ import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.serializer
 import top.colter.bilibili.client.BiliClient
 import top.colter.bilibili.data.ImageType
+import top.colter.bilibili.data.ImageUrl
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
 import java.io.File
 import java.security.MessageDigest
 import java.time.LocalDateTime
@@ -51,16 +52,24 @@ public val json: Json = Json {
 
 public inline fun <reified T> String.decode(): T = json.parseToJsonElement(this).decode()
 
+public fun <T> String.decode(deserializer: DeserializationStrategy<T>): T =
+    json.parseToJsonElement(this).decode(deserializer)
+
 @OptIn(ExperimentalSerializationApi::class)
 public inline fun <reified T> JsonElement.decode(): T {
+    return decode(serializer<T>())
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+public fun <T> JsonElement.decode(deserializer: DeserializationStrategy<T>): T {
     return try {
-        json.decodeFromJsonElement(this)
+        json.decodeFromJsonElement(deserializer, this)
     } catch (e: SerializationException) {
-        val tolerantElement = this.coerceFor(serializer<T>().descriptor)
+        val tolerantElement = this.coerceFor(deserializer.descriptor)
         try {
-            json.decodeFromJsonElement(tolerantElement)
+            json.decodeFromJsonElement(deserializer, tolerantElement)
         } catch (fallbackException: SerializationException) {
-            val file = writeDecodeErrorFile(fallbackException, this@decode, tolerantElement)
+            val file = writeDecodeErrorFile(fallbackException, this, tolerantElement)
             throw SerializationException(
                 "Json解析失败，请把 ${file.absolutePath} 文件反馈给开发者\n${fallbackException.message}",
                 fallbackException
@@ -213,29 +222,38 @@ public fun String.md5(): String {
 }
 
 /**
- * 查找对象中所有 LazyImage 类型的属性
+ * 查找对象中所有 ImageUrl 类型的属性
  */
-public fun forEachLazyImageFields(obj: Any, block: LazyImage.(ImageType) -> Unit) {
+public fun forEachImageUrlFields(obj: Any, block: ImageUrl.(ImageType) -> Unit) {
     obj::class.declaredMemberProperties.forEach { property ->
         val type = property.returnType.jvmErasure
-        if (type == LazyImage::class) {
-            (property.apply { isAccessible = true }.getter.call(obj) as LazyImage)
-                .block(property.findAnnotation<ImgType>()?.type ?: ImageType.UNKNOWN)
+        val imageType = property.findAnnotation<ImgType>()?.type ?: ImageType.UNKNOWN
+        if (type == ImageUrl::class) {
+            (property.apply { isAccessible = true }.getter.call(obj) as? ImageUrl)
+                ?.block(imageType)
         } else if (type == List::class) {
             val list = property.apply { isAccessible = true }.getter.call(obj) as List<*>
-            if (list.isNotEmpty()) {
-                if (list.first()!!::class == LazyImage::class) {
-                    list.forEach {
-                        (it as LazyImage).block(property.findAnnotation<ImgType>()?.type ?: ImageType.UNKNOWN)
+            list.forEach { item ->
+                when (item) {
+                    is ImageUrl -> item.block(imageType)
+                    null -> {}
+                    else -> if (item::class.isData) {
+                        forEachImageUrlFields(item, block)
                     }
-                } else if (list.first()!!::class.isData) {
-                    list.forEach { forEachLazyImageFields(it!!, block) }
                 }
             }
         } else if (type.isData) {
             property.apply { isAccessible = true }.getter.call(obj)?.let {
-                forEachLazyImageFields(it, block)
+                forEachImageUrlFields(it, block)
             }
         }
     }
+}
+
+@Deprecated(
+    message = "Use forEachImageUrlFields.",
+    replaceWith = ReplaceWith("forEachImageUrlFields(obj, block)")
+)
+public fun forEachLazyImageFields(obj: Any, block: ImageUrl.(ImageType) -> Unit) {
+    forEachImageUrlFields(obj, block)
 }

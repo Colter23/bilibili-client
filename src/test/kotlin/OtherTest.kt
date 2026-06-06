@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import top.colter.bilibili.data.dynamic.BiliDynamic
 import top.colter.bilibili.tools.decode
-import top.colter.bilibili.tools.forEachLazyImageFields
+import top.colter.bilibili.tools.forEachImageUrlFields
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -17,8 +17,8 @@ internal class OtherTest {
 
 //        val client = HttpClient(OkHttp)
 
-//        val list = mutableListOf<Deferred<Pair<LazyImage, Image>>>()
-        forEachLazyImageFields(dynamic) {
+//        val list = mutableListOf<Deferred<Pair<ImageUrl, Image>>>()
+        forEachImageUrlFields(dynamic) {
             println("${it.name}  $url")
         }
     }

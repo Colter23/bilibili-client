@@ -9,6 +9,8 @@ import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.supervisorScope
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.serializer
 import kotlinx.io.IOException
 import top.colter.bilibili.exception.BiliEmptyException
 import top.colter.bilibili.tools.decode
@@ -30,11 +32,27 @@ public abstract class AbstractKtorClient : KtorClient {
     }
 
     public suspend inline fun <reified T> get(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T {
-        return getString(url) { block() }.decode()
+        return get(url, serializer<T>()) { block() }
     }
 
     public suspend inline fun <reified T> post(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T {
-        return postString(url) { block() }.decode()
+        return post(url, serializer<T>()) { block() }
+    }
+
+    public suspend fun <T> get(
+        url: String,
+        deserializer: DeserializationStrategy<T>,
+        block: HttpRequestBuilder.() -> Unit = {}
+    ): T {
+        return getString(url, block).decode(deserializer)
+    }
+
+    public suspend fun <T> post(
+        url: String,
+        deserializer: DeserializationStrategy<T>,
+        block: HttpRequestBuilder.() -> Unit = {}
+    ): T {
+        return postString(url, block).decode(deserializer)
     }
 
     public suspend fun getString(url: String, block: HttpRequestBuilder.() -> Unit = {}): String {
@@ -88,7 +106,17 @@ public abstract class AbstractKtorClient : KtorClient {
  * 执行状态码校验后，将 data/result 字段反序列化为 [R]。
  */
 public suspend inline fun <reified T: BaseResult, reified R> AbstractKtorClient.getData(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): R {
-     return (get<T>(url, block).apply { handleStatus() }.data ?: throw BiliEmptyException()).decode()
+     return getData(url, serializer<T>(), serializer<R>()) { block() }
+}
+
+public suspend fun <T: BaseResult, R> AbstractKtorClient.getData(
+    url: String,
+    resultDeserializer: DeserializationStrategy<T>,
+    dataDeserializer: DeserializationStrategy<R>,
+    block: HttpRequestBuilder.() -> Unit = {}
+): R {
+    return (get(url, resultDeserializer, block).apply { handleStatus() }.data ?: throw BiliEmptyException())
+        .decode(dataDeserializer)
 }
 
 /**
@@ -97,7 +125,15 @@ public suspend inline fun <reified T: BaseResult, reified R> AbstractKtorClient.
  * 执行状态码校验，但不强制要求响应中存在 data/result 字段。
  */
 public suspend inline fun <reified T: BaseResult> AbstractKtorClient.getResult(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T {
-    return get<T>(url, block).apply { handleStatus() }
+    return getResult(url, serializer<T>()) { block() }
+}
+
+public suspend fun <T: BaseResult> AbstractKtorClient.getResult(
+    url: String,
+    resultDeserializer: DeserializationStrategy<T>,
+    block: HttpRequestBuilder.() -> Unit = {}
+): T {
+    return get(url, resultDeserializer, block).apply { handleStatus() }
 }
 
 /**
@@ -106,7 +142,17 @@ public suspend inline fun <reified T: BaseResult> AbstractKtorClient.getResult(u
  * 执行状态码校验后，将 data/result 字段反序列化为 [R]。
  */
 public suspend inline fun <reified T: BaseResult, reified R> AbstractKtorClient.postData(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): R {
-    return (post<T>(url, block).apply { handleStatus() }.data ?: throw BiliEmptyException()).decode()
+    return postData(url, serializer<T>(), serializer<R>()) { block() }
+}
+
+public suspend fun <T: BaseResult, R> AbstractKtorClient.postData(
+    url: String,
+    resultDeserializer: DeserializationStrategy<T>,
+    dataDeserializer: DeserializationStrategy<R>,
+    block: HttpRequestBuilder.() -> Unit = {}
+): R {
+    return (post(url, resultDeserializer, block).apply { handleStatus() }.data ?: throw BiliEmptyException())
+        .decode(dataDeserializer)
 }
 
 /**
@@ -115,7 +161,15 @@ public suspend inline fun <reified T: BaseResult, reified R> AbstractKtorClient.
  * 执行状态码校验，但不强制要求响应中存在 data/result 字段。
  */
 public suspend inline fun <reified T: BaseResult> AbstractKtorClient.postResult(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T {
-    return post<T>(url, block).apply { handleStatus() }
+    return postResult(url, serializer<T>()) { block() }
+}
+
+public suspend fun <T: BaseResult> AbstractKtorClient.postResult(
+    url: String,
+    resultDeserializer: DeserializationStrategy<T>,
+    block: HttpRequestBuilder.() -> Unit = {}
+): T {
+    return post(url, resultDeserializer, block).apply { handleStatus() }
 }
 
 //    val ss = S::class

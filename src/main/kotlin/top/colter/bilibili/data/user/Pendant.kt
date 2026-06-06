@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.user
+﻿package top.colter.bilibili.data.user
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 
 /**
  * 头像挂件
@@ -18,5 +18,5 @@ public data class Pendant(
     val name: String,
     @SerialName("image")
     @ImgType(ImageType.USER)
-    val image: LazyImage
+    val image: ImageUrl
 )

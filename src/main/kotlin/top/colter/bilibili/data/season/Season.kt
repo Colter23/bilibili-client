@@ -1,4 +1,4 @@
-package top.colter.bilibili.data.season
+﻿package top.colter.bilibili.data.season
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -9,7 +9,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 import top.colter.bilibili.data.dynamic.general.Stats
 
 @Serializable
@@ -18,7 +18,7 @@ public data class Season (
     val mdid: Int,
     val title: String,
     @ImgType(ImageType.COVER)
-    val cover: LazyImage,
+    val cover: ImageUrl,
     val type: SeasonType,
     val stats: Stats
 )

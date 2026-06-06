@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.dynamic.major
+﻿package top.colter.bilibili.data.dynamic.major
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 
 
 /**
@@ -38,7 +38,7 @@ public data class MajorDrawItem(
     val size: Float,
     @SerialName("src")
     @ImgType(ImageType.IMAGES)
-    val src: LazyImage,
+    val src: ImageUrl,
     @SerialName("tags")
     val tags: List<MajorDrawTag>? = null,
 )

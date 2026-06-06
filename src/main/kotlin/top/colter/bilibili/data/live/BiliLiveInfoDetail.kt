@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.live
+﻿package top.colter.bilibili.data.live
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 
 /**
  *
@@ -32,14 +32,14 @@ public data class BiliLiveInfoDetail(
     @SerialName("area_name")
     val areaName: String,
     @SerialName("background")
-    val background: LazyImage,
+    val background: ImageUrl,
     @SerialName("title")
     override val title: String,
     @SerialName("user_cover")
     @ImgType(ImageType.COVER)
-    override val cover: LazyImage,
+    override val cover: ImageUrl,
     @SerialName("keyframe")
-    val keyframe: LazyImage,
+    val keyframe: ImageUrl,
     @SerialName("live_time")
     val liveTime: String,
     @SerialName("up_session")

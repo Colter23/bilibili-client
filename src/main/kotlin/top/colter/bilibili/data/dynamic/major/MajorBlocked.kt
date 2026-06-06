@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.dynamic.major
+﻿package top.colter.bilibili.data.dynamic.major
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 
 
 /**
@@ -37,9 +37,9 @@ public data class MajorBlocked(
     public data class Img(
         @SerialName("img_dark")
         @ImgType(ImageType.OTHER)
-        val imgDark: LazyImage,
+        val imgDark: ImageUrl,
         @SerialName("img_day")
         @ImgType(ImageType.OTHER)
-        val imgDay: LazyImage,
+        val imgDay: ImageUrl,
     )
 }

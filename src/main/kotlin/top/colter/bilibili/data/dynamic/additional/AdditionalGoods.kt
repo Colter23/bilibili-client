@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.dynamic.additional
+﻿package top.colter.bilibili.data.dynamic.additional
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 
 
 /**
@@ -49,7 +49,7 @@ public data class AdditionalGoodItem(
     val brief: String,
     @SerialName("cover")
     @ImgType(ImageType.OTHER)
-    val cover: LazyImage,
+    val cover: ImageUrl,
     @SerialName("price")
     val price: String,
     @SerialName("jump_desc")

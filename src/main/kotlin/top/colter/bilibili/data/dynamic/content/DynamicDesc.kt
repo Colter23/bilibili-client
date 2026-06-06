@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.dynamic.content
+﻿package top.colter.bilibili.data.dynamic.content
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 import top.colter.bilibili.data.dynamic.type.RichTextType
 
 
@@ -61,7 +61,7 @@ public data class RichTextNode(
 
         @SerialName("icon_url")
         @ImgType(ImageType.EMOJI)
-        val iconUrl: LazyImage,
+        val iconUrl: ImageUrl,
         @SerialName("size")
         val size: Int,
         @SerialName("text")

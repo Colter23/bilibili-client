@@ -1,10 +1,10 @@
-package top.colter.bilibili.data.dynamic.additional
+﻿package top.colter.bilibili.data.dynamic.additional
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
-import top.colter.bilibili.data.LazyImage
+import top.colter.bilibili.data.ImageUrl
 
 
 /**
@@ -28,7 +28,7 @@ public data class AdditionalUgc(
     val title: String,
     @SerialName("cover")
     @ImgType(ImageType.COVER)
-    val cover: LazyImage,
+    val cover: ImageUrl,
     @SerialName("desc_second")
     val descSecond: String,
     @SerialName("duration")
