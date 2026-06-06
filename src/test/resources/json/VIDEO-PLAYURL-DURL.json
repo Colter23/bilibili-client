@@ -1,0 +1,25 @@
+{
+  "from": "local",
+  "result": "suee",
+  "message": "",
+  "quality": 64,
+  "format": "mp4",
+  "timelength": 60000,
+  "durl": [
+    {
+      "order": 1,
+      "length": 60000,
+      "size": 1234,
+      "url": "https://example.test/video.mp4",
+      "backup_url": ["https://example.test/video-backup.mp4"]
+    }
+  ],
+  "support_formats": [
+    {
+      "quality": 64,
+      "format": "mp4",
+      "new_description": "720P",
+      "display_desc": "720P"
+    }
+  ]
+}

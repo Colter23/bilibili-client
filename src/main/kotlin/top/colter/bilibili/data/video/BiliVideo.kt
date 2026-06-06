@@ -1,18 +1,22 @@
 package top.colter.bilibili.data.video
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNames
 import top.colter.bilibili.data.ImageType
 import top.colter.bilibili.data.ImgType
 import top.colter.bilibili.data.LazyImage
 import top.colter.bilibili.data.user.BaseUser
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 public data class BiliVideo (
     val bvid: String,
     val aid: Long,
     val videos: Int,
-    @SerialName("card_url")
+    @SerialName("pic")
+    @JsonNames("card_url")
     @ImgType(ImageType.COVER)
     val cover: LazyImage,
     val title: String,
@@ -24,7 +28,8 @@ public data class BiliVideo (
     val duration: Int,
     val owner: BaseUser,
     val dynamic: String? = null,
-    val cid: Long
+    val cid: Long,
+    val pages: List<BiliVideoPage> = emptyList()
 )
 
 @Serializable
