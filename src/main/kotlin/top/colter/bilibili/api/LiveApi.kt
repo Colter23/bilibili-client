@@ -13,6 +13,7 @@ import top.colter.bilibili.data.live.BiliLiveInfoDetail
 import top.colter.bilibili.data.live.danmaku.LiveDanmakuInfo
 import top.colter.bilibili.data.live.danmaku.LiveDanmakuMessage
 import top.colter.bilibili.data.live.danmaku.LiveDanmakuOptions
+import top.colter.bilibili.exception.BiliEmptyException
 import top.colter.bilibili.live.danmaku.createLiveDanmakuFlow
 import top.colter.bilibili.tools.decode
 
@@ -85,7 +86,8 @@ public const val LIVE_DANMAKU_INFO: String = "$BASE_LIVE_API/xlive/web-room/v1/i
  * @see LIVE_LIST
  */
 public suspend fun BiliClient.getLiveList(): List<BiliLiveInfo> {
-    return (getData(LIVE_LIST) as JsonObject)["rooms"]!!.decode()
+    val data = getData<JsonObject>(LIVE_LIST)
+    return (data["rooms"] ?: throw BiliEmptyException("直播列表为空")).decode()
 }
 
 /**
@@ -111,7 +113,6 @@ public suspend fun BiliClient.getLiveStatusBatch(uids: Iterable<Long>): Map<Long
     val uidList = uids.toList()
     require(uidList.isNotEmpty()) { "uids 不能为空" }
     return getData(LIVE_STATUS_BATCH) {
-        parameter("uids[]", 1)
         uidList.forEach { parameter("uids[]", it) }
     }
 }

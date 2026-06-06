@@ -25,19 +25,28 @@ public abstract class AbstractKtorClient : KtorClient {
 
     override val clientCount: Int = 3
 
-    override val clients: MutableList<HttpClient>
-        get() = MutableList(clientCount) { initClient() }
+    override val clients: MutableList<HttpClient> by lazy {
+        MutableList(clientCount) { initClient() }
+    }
 
     public suspend inline fun <reified T> get(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T {
-        return useHttpClient<String> {
-            it.get(url) { block() }.body()
-        }.decode()
+        return getString(url) { block() }.decode()
     }
 
     public suspend inline fun <reified T> post(url: String, crossinline block: HttpRequestBuilder.() -> Unit = {}): T {
+        return postString(url) { block() }.decode()
+    }
+
+    public suspend fun getString(url: String, block: HttpRequestBuilder.() -> Unit = {}): String {
+        return useHttpClient<String> {
+            it.get(url) { block() }.body()
+        }
+    }
+
+    public suspend fun postString(url: String, block: HttpRequestBuilder.() -> Unit = {}): String {
         return useHttpClient<String> {
             it.post(url) { block() }.body()
-        }.decode()
+        }
     }
 
     public open val retry: Int = 3
@@ -50,9 +59,10 @@ public abstract class AbstractKtorClient : KtorClient {
         while (isActive) {
             try {
                 val client = clients[clientIndex]
-                if (proxys.isNotEmpty()) {
-                    client.engineConfig.proxy = proxys[proxyIndex]
-                    proxyIndex = (proxyIndex + 1) % proxys.size
+                val proxyList = proxys
+                if (proxyList.isNotEmpty()) {
+                    client.engineConfig.proxy = proxyList[proxyIndex]
+                    proxyIndex = (proxyIndex + 1) % proxyList.size
                 }
                 return@supervisorScope block(client).apply { retryIndex = 0 }
             } catch (e: Exception) {

@@ -8,10 +8,7 @@ import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.Cookie
 import io.ktor.http.HttpHeaders
-import kotlinx.serialization.json.Json
 import top.colter.bilibili.data.EditCookie
-import top.colter.bilibili.tools.json
-import top.colter.bilibili.tools.md5
 
 public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorClient() {
 
@@ -41,7 +38,6 @@ public open class BiliClient(private val timeout: Long = 15_000L): AbstractKtorC
             storage = this@BiliClient.storage.asCookiesStorage()
         }
         expectSuccess = true
-        Json { json }
         ContentEncoding()
     }
 

@@ -10,6 +10,7 @@ import top.colter.bilibili.client.getDataWithWbi
 import top.colter.bilibili.data.user.BiliUserInfo
 import top.colter.bilibili.data.user.BiliUserInfoCard
 import top.colter.bilibili.data.user.WbiImg
+import top.colter.bilibili.exception.BiliEmptyException
 import top.colter.bilibili.tools.decode
 
 
@@ -173,7 +174,9 @@ public suspend fun BiliClient.getCurrentUserNav(): BiliUserInfo {
  * @see CURRENT_USER_NAV
  */
 public suspend fun BiliClient.getWbi(): WbiImg {
-    return get<BiliCommonResult>(CURRENT_USER_NAV).data?.decode<JsonObject>()["wbi_img"]!!.decode()
+    val data = get<BiliCommonResult>(CURRENT_USER_NAV).data?.decode<JsonObject>()
+        ?: throw BiliEmptyException("WBI 信息为空")
+    return (data["wbi_img"] ?: throw BiliEmptyException("WBI 图片信息为空")).decode()
 }
 
 
