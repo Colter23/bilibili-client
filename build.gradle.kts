@@ -1,8 +1,12 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
+import com.vanniktech.maven.publish.SourcesJar
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("jvm") version "2.4.0"
     kotlin("plugin.serialization") version "2.4.0"
-//    id("me.him188.maven-central-publish") version "1.0.0"
-    id("maven-publish")
+    id("com.vanniktech.maven.publish") version "0.36.0"
 }
 
 group = "top.colter.bilibili"
@@ -20,10 +24,10 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.5.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
     implementation("com.cronutils:cron-utils:9.2.1")
+    implementation(kotlin("reflect"))
 
     testImplementation(kotlin("test"))
     testImplementation("org.slf4j:slf4j-simple:2.0.17")
-    implementation(kotlin("reflect"))
 }
 
 tasks.test {
@@ -38,40 +42,42 @@ java {
 kotlin {
     explicitApi()
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        jvmTarget.set(JvmTarget.JVM_11)
     }
 }
 
-// 定义源码 JAR 任务
-val sourcesJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("sources")
-    from(sourceSets.main.get().allSource)
-}
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
 
-// 定义 Javadoc JAR 任务
-val javadocJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("javadoc")
-    from(tasks.javadoc.get().destinationDir)
-    dependsOn(tasks.javadoc)
-}
+    coordinates("top.colter.bilibili", "bilibili-client", version.toString())
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "top.colter.bilibili"
-            artifactId = "bilibili-client"
-            version = "0.0.1"
+    configure(
+        KotlinJvm(
+            javadocJar = JavadocJar.Empty(),
+            sourcesJar = SourcesJar.Sources(),
+        )
+    )
 
-            from(components["kotlin"])
-            artifact(sourcesJar)             // 添加源码包
-            artifact(javadocJar)     // 添加 Javadoc 包
+    pom {
+        name.set("Bilibili Client")
+        description.set("Kotlin client for Bilibili APIs.")
+        url.set("https://github.com/Colter23/bilibili-client")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://github.com/Colter23/bilibili-client/blob/main/LICENSE")
+            }
+        }
+        developers {
+            developer {
+                id.set("Colter23")
+                name.set("Colter")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/Colter23/bilibili-client")
+            url.set("https://github.com/Colter23/bilibili-client")
         }
     }
 }
-//mavenCentralPublish {
-//    useCentralS01()
-//    singleDevGithubProject("Colter23", "bilibili-client")
-//    licenseFromGitHubProject("AGPL-3.0")
-////    workingDir = System.getenv("PUBLICATION_TEMP")?.let { file(it).resolve(projectName) }
-////        ?: buildDir.resolve("publishing-tmp")
-//}
