@@ -201,9 +201,6 @@ internal inline fun <reified T : Any, reified R> reflectField(): ReadOnlyPropert
         thisRef::class.java.getDeclaredField(property.name).apply { isAccessible = true }.get(thisRef) as R
     }
 
-internal inline fun <reified R> Any.reflectMethod(method: String, vararg args: Any?): R =
-    this::class.java.getDeclaredMethod(method).invoke(this, args) as R
-
 public val currentTimeMillis: Long
     get() = System.currentTimeMillis()
 

@@ -270,52 +270,54 @@ private suspend fun BiliClient.downloadResolvedVideo(
 ): BiliVideoDownloadResult {
     prepareDownloadDirectory(directory)
 
-    if (playUrl.dash?.video.orEmpty().any { it.urls.isNotEmpty() }) {
-        val videoStream = playUrl.selectBestVideoStream(quality)
-        val audioStream = playUrl.selectBestAudioStream()
-        val videoFile = directory.resolve("$fileName.video.m4s")
-        val audioFile = audioStream?.let { directory.resolve("$fileName.audio.m4s") }
+    return createDownloadClient().use { streamClient ->
+        if (playUrl.dash?.video.orEmpty().any { it.urls.isNotEmpty() }) {
+            val videoStream = playUrl.selectBestVideoStream(quality)
+            val audioStream = playUrl.selectBestAudioStream()
+            val videoFile = directory.resolve("$fileName.video.m4s")
+            val audioFile = audioStream?.let { directory.resolve("$fileName.audio.m4s") }
 
-        downloadStream(videoStream.urls, videoFile, BiliVideoDownloadStreamType.VIDEO, referer, overwrite, onProgress)
-        audioStream?.let {
-            downloadStream(it.urls, audioFile!!, BiliVideoDownloadStreamType.AUDIO, referer, overwrite, onProgress)
-        }
-
-        if (!ffmpegPath.isNullOrBlank()) {
-            val finalFile = directory.resolve("$fileName.mp4")
-            ensureWritableTarget(finalFile, overwrite)
-            mergeWithFfmpeg(ffmpegPath, videoFile, audioFile, finalFile, overwrite)
-            if (!keepStreams) {
-                videoFile.delete()
-                audioFile?.delete()
+            streamClient.downloadStream(videoStream.urls, videoFile, BiliVideoDownloadStreamType.VIDEO, referer, overwrite, onProgress)
+            audioStream?.let {
+                streamClient.downloadStream(it.urls, audioFile!!, BiliVideoDownloadStreamType.AUDIO, referer, overwrite, onProgress)
             }
-            return BiliVideoDownloadResult(
+
+            if (!ffmpegPath.isNullOrBlank()) {
+                val finalFile = directory.resolve("$fileName.mp4")
+                ensureWritableTarget(finalFile, overwrite)
+                mergeWithFfmpeg(ffmpegPath, videoFile, audioFile, finalFile, overwrite)
+                if (!keepStreams) {
+                    videoFile.delete()
+                    audioFile?.delete()
+                }
+                return@use BiliVideoDownloadResult(
+                    playUrl = playUrl,
+                    videoFile = videoFile.takeIf { keepStreams },
+                    audioFile = audioFile?.takeIf { keepStreams },
+                    finalFile = finalFile,
+                    videoStream = videoStream,
+                    audioStream = audioStream
+                )
+            }
+
+            return@use BiliVideoDownloadResult(
                 playUrl = playUrl,
-                videoFile = videoFile.takeIf { keepStreams },
-                audioFile = audioFile?.takeIf { keepStreams },
-                finalFile = finalFile,
+                videoFile = videoFile,
+                audioFile = audioFile,
                 videoStream = videoStream,
                 audioStream = audioStream
             )
         }
 
-        return BiliVideoDownloadResult(
-            playUrl = playUrl,
-            videoFile = videoFile,
-            audioFile = audioFile,
-            videoStream = videoStream,
-            audioStream = audioStream
-        )
-    }
+        if (playUrl.durl.isNotEmpty()) {
+            return@use streamClient.downloadDurlSegments(playUrl, directory, fileName, referer, overwrite, onProgress)
+        }
 
-    if (playUrl.durl.isNotEmpty()) {
-        return downloadDurlSegments(playUrl, directory, fileName, referer, overwrite, onProgress)
+        throw BiliDownloadException("没有可下载的视频流")
     }
-
-    throw BiliDownloadException("没有可下载的视频流")
 }
 
-private suspend fun BiliClient.downloadDurlSegments(
+private suspend fun HttpClient.downloadDurlSegments(
     playUrl: BiliVideoPlayUrl,
     directory: File,
     fileName: String,
@@ -341,7 +343,7 @@ private suspend fun BiliClient.downloadDurlSegments(
     )
 }
 
-private suspend fun BiliClient.downloadStream(
+private suspend fun HttpClient.downloadStream(
     urls: List<String>,
     targetFile: File,
     type: BiliVideoDownloadStreamType,
@@ -364,38 +366,39 @@ private suspend fun BiliClient.downloadStream(
     throw BiliDownloadException("下载 $type 流失败：$message")
 }
 
-private suspend fun BiliClient.downloadUrl(
+private suspend fun HttpClient.downloadUrl(
     url: String,
     targetFile: File,
     type: BiliVideoDownloadStreamType,
     referer: String,
     onProgress: ((BiliDownloadProgress) -> Unit)?
 ) {
+    val response = get(url) {
+        headers[HttpHeaders.Referrer] = referer
+        headers[HttpHeaders.UserAgent] = BILI_BROWSER_USER_AGENT
+    }
+    val totalBytes = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
+    val channel = response.bodyAsChannel()
+    var downloadedBytes = 0L
+    val buffer = ByteArray(DEFAULT_DOWNLOAD_BUFFER_SIZE)
+    targetFile.outputStream().buffered().use { output ->
+        while (true) {
+            val read = channel.readAvailable(buffer, 0, buffer.size)
+            if (read <= 0) break
+            output.write(buffer, 0, read)
+            downloadedBytes += read
+            onProgress?.invoke(BiliDownloadProgress(type, downloadedBytes, totalBytes, targetFile))
+        }
+    }
+}
+
+private suspend fun BiliClient.createDownloadClient(): HttpClient {
     val cookieStorage = copyDownloadCookiesStorage()
-    val streamClient = HttpClient(OkHttp) {
+    return HttpClient(OkHttp) {
         install(HttpCookies) {
             storage = cookieStorage
         }
         expectSuccess = true
-    }
-    streamClient.use { client ->
-        val response = client.get(url) {
-            headers[HttpHeaders.Referrer] = referer
-            headers[HttpHeaders.UserAgent] = BILI_BROWSER_USER_AGENT
-        }
-        val totalBytes = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
-        val channel = response.bodyAsChannel()
-        var downloadedBytes = 0L
-        val buffer = ByteArray(DEFAULT_DOWNLOAD_BUFFER_SIZE)
-        targetFile.outputStream().buffered().use { output ->
-            while (true) {
-                val read = channel.readAvailable(buffer, 0, buffer.size)
-                if (read <= 0) break
-                output.write(buffer, 0, read)
-                downloadedBytes += read
-                onProgress?.invoke(BiliDownloadProgress(type, downloadedBytes, totalBytes, targetFile))
-            }
-        }
     }
 }
 

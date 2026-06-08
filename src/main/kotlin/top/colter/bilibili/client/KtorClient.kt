@@ -14,6 +14,7 @@ import kotlinx.serialization.serializer
 import kotlinx.io.IOException
 import top.colter.bilibili.exception.BiliEmptyException
 import top.colter.bilibili.tools.decode
+import java.util.concurrent.atomic.AtomicInteger
 
 public interface KtorClient : Closeable {
     public val clientCount: Int
@@ -69,26 +70,24 @@ public abstract class AbstractKtorClient : KtorClient {
 
     public open val retry: Int = 3
 
-    private var clientIndex = 0
-    private var proxyIndex = 0
-    private var retryIndex = 0
+    private val clientIndex = AtomicInteger(0)
+    private val proxyIndex = AtomicInteger(0)
 
     public suspend fun <R> useHttpClient(block: suspend (HttpClient) -> R): R = supervisorScope {
+        var retryCount = 0
         while (isActive) {
             try {
-                val client = clients[clientIndex]
+                val client = clients[clientIndex.get().mod(clients.size)]
                 val proxyList = proxys
                 if (proxyList.isNotEmpty()) {
-                    client.engineConfig.proxy = proxyList[proxyIndex]
-                    proxyIndex = (proxyIndex + 1) % proxyList.size
+                    client.engineConfig.proxy = proxyList[proxyIndex.getAndIncrement().mod(proxyList.size)]
                 }
-                return@supervisorScope block(client).apply { retryIndex = 0 }
+                return@supervisorScope block(client)
             } catch (e: Exception) {
-                if (isActive && retryIndex < retry && (e is IOException)) {
-                    retryIndex ++
-                    clientIndex = (clientIndex + 1) % clients.size
+                if (isActive && retryCount < retry && (e is IOException)) {
+                    retryCount++
+                    clientIndex.incrementAndGet()
                 } else {
-                    retryIndex = 0
                     throw e
                 }
             }

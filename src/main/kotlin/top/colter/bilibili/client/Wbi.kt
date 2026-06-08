@@ -2,9 +2,10 @@ package top.colter.bilibili.client
 
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.parameter
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import top.colter.bilibili.api.getWbi
 import top.colter.bilibili.data.user.WbiImg
-import top.colter.bilibili.exception.BiliRequestException
 import top.colter.bilibili.tools.md5
 import java.net.URLEncoder
 import java.time.LocalDate
@@ -53,15 +54,20 @@ internal suspend fun BiliClient.getVerifyString(): String {
 }
 
 private suspend fun BiliClient.getWbiImg(): WbiImg {
-    val now = LocalDate.now()
     val cache = synchronized(wbiCaches) {
         wbiCaches.getOrPut(this) { WbiCache() }
     }
-    if (now.isAfter(cache.lastWbiTime) || cache.wbiImg == null) {
+    cache.mutex.withLock {
+        val now = LocalDate.now()
+        val cached = cache.wbiImg
+        if (cached != null && !now.isAfter(cache.lastWbiTime)) {
+            return cached
+        }
+        val wbiImg = getWbi()
+        cache.wbiImg = wbiImg
         cache.lastWbiTime = now
-        cache.wbiImg = getWbi()
+        return wbiImg
     }
-    return cache.wbiImg ?: throw BiliRequestException("无法获取WBI信息")
 }
 
 private fun String.encodeWbiParam(): String {
@@ -69,6 +75,7 @@ private fun String.encodeWbiParam(): String {
 }
 
 private class WbiCache {
+    val mutex: Mutex = Mutex()
     var lastWbiTime: LocalDate = LocalDate.now()
     var wbiImg: WbiImg? = null
 }
