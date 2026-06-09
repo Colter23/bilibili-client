@@ -134,6 +134,8 @@ public suspend fun BiliClient.redirect(url: String): String? {
         it.config {
             followRedirects = false
             expectSuccess = false
-        }.head(url)
+        }.use { redirectClient ->
+            redirectClient.head(url)
+        }
     }.headers[HttpHeaders.Location]
 }
