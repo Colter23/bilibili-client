@@ -9,7 +9,11 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
 @Serializable(ImageUrlSerializer::class)
-public data class ImageUrl(public val url: String)
+public data class ImageUrl(public val url: String) {
+    /** 完整 URL（补全协议） */
+    public val fullUrl: String
+        get() = if (url.startsWith("//")) "https:$url" else url
+}
 
 public object ImageUrlSerializer : KSerializer<ImageUrl> {
     override val descriptor: SerialDescriptor =

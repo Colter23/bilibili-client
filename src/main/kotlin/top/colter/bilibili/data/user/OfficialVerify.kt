@@ -32,12 +32,15 @@ public data class OfficialVerify(
  * [INDIVIDUAL] 个人认证
  *
  * [INSTITUTION] 机构认证
+ *
+ * [UNKNOWN] 未知类型
  */
 @Serializable(OfficialVerifyTypeSerializer::class)
 public enum class OfficialVerifyType(public val value: Int, public val text: String){
     NONE(-1, "无认证"),
     INDIVIDUAL(0, "个人认证"),
-    INSTITUTION(1, "机构认证")
+    INSTITUTION(1, "机构认证"),
+    UNKNOWN(127, "未知类型")
 }
 
 public object OfficialVerifyTypeSerializer: KSerializer<OfficialVerifyType> {
@@ -45,7 +48,7 @@ public object OfficialVerifyTypeSerializer: KSerializer<OfficialVerifyType> {
         PrimitiveSerialDescriptor(OfficialVerifyType::class.qualifiedName!!, PrimitiveKind.STRING)
     override fun deserialize(decoder: Decoder): OfficialVerifyType {
         return decoder.decodeInt().run {
-            OfficialVerifyType.entries.find { it.value == this } ?: throw IndexOutOfBoundsException("认证类型错误: $this")
+            OfficialVerifyType.entries.find { it.value == this } ?: OfficialVerifyType.UNKNOWN
         }
    }
     override fun serialize(encoder: Encoder, value: OfficialVerifyType): Unit = encoder.encodeInt(value.value)

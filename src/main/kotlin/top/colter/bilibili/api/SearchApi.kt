@@ -1,48 +1,75 @@
 package top.colter.bilibili.api
 
 import io.ktor.client.request.*
-import kotlinx.serialization.json.JsonElement
 import top.colter.bilibili.client.BiliClient
-import top.colter.bilibili.client.BiliCommonResult
-import top.colter.bilibili.client.getData
+import top.colter.bilibili.client.getDataWithWbi
+import top.colter.bilibili.data.search.*
 
 
 /////////////////////////////////////////////
 //                 搜索相关                 //
 /////////////////////////////////////////////
+
 /**
- * ## 搜索
+ * ## 搜索视频
  *
  * **Method:** GET
  *
- * **Params:** search_type=搜索类型&keyword=关键词&page=页数&order=排序
+ * **URL:** https://api.bilibili.com/x/web-interface/wbi/search/type
  *
- * **Response:** [BiliCommonResult] / [...]
- *
- * **Example:** https://api.bilibili.com/x/web-interface/search/type?search_type=video&keyword=哔哩哔哩&page=1
- */
-public const val SEARCH: String = "https://api.bilibili.com/x/web-interface/search/type"
-
-/**
- * ## 搜索 (!未完善!)
+ * **Response:** [SearchResponse]<List<[VideoSearchResult]>>
  *
  * @param keyword 搜索关键词
- * @param searchType 搜索类型，常见值：video、media_bangumi、media_ft、bili_user、article
- * @param page 页数
- * @param order 排序方式，为空时使用接口默认排序
- *
- * @see SEARCH
+ * @param page 页数，默认 1
+ * @param order 排序方式，默认综合排序
+ * @param duration 视频时长筛选（分钟）：0-全部，1-10分钟以下，2-10-30分钟，3-30-60分钟，4-60分钟以上
+ * @param tids 视频分区筛选，默认 0（全部分区）
  */
-public suspend fun BiliClient.search(
+public suspend fun BiliClient.searchVideo(
     keyword: String,
-    searchType: String = "video",
     page: Int = 1,
-    order: String? = null,
-): JsonElement {
-    return getData(SEARCH) {
-        parameter("search_type", searchType)
+    order: VideoSearchOrder = VideoSearchOrder.TOTAL_RANK,
+    duration: Int = 0,
+    tids: Int = 0
+): SearchResponse<List<VideoSearchResult>> {
+    return getDataWithWbi("https://api.bilibili.com/x/web-interface/wbi/search/type") {
+        parameter("search_type", "video")
         parameter("keyword", keyword)
         parameter("page", page)
-        order?.takeIf { it.isNotBlank() }?.let { parameter("order", it) }
+        parameter("order", order.value)
+        parameter("duration", duration)
+        parameter("tids", tids)
+    }
+}
+
+/**
+ * ## 搜索用户
+ *
+ * **Method:** GET
+ *
+ * **URL:** https://api.bilibili.com/x/web-interface/wbi/search/type
+ *
+ * **Response:** [SearchResponse]<List<[UserSearchResult]>>
+ *
+ * @param keyword 搜索关键词
+ * @param page 页数，默认 1
+ * @param order 排序方式，默认排序
+ * @param orderSort 排序顺序：0-由高到低，1-由低到高
+ * @param userType 用户类型筛选，默认全部用户
+ */
+public suspend fun BiliClient.searchUser(
+    keyword: String,
+    page: Int = 1,
+    order: UserSearchOrder = UserSearchOrder.DEFAULT,
+    orderSort: Int = 0,
+    userType: UserType = UserType.ALL
+): SearchResponse<List<UserSearchResult>> {
+    return getDataWithWbi("https://api.bilibili.com/x/web-interface/wbi/search/type") {
+        parameter("search_type", "bili_user")
+        parameter("keyword", keyword)
+        parameter("page", page)
+        parameter("order", order.value)
+        parameter("order_sort", orderSort)
+        parameter("user_type", userType.value)
     }
 }
