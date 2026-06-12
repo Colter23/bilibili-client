@@ -5,11 +5,15 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.get
+import io.ktor.client.request.head
 import io.ktor.client.request.parameter
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.Cookie
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
+import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readAvailable
 import top.colter.bilibili.client.BILI_BROWSER_USER_AGENT
 import top.colter.bilibili.client.BiliClient
@@ -20,10 +24,13 @@ import top.colter.bilibili.data.video.BiliVideo
 import top.colter.bilibili.data.video.BiliVideoDashStream
 import top.colter.bilibili.data.video.BiliVideoDownloadOptions
 import top.colter.bilibili.data.video.BiliVideoDownloadResult
+import top.colter.bilibili.data.video.BiliVideoDownloadSize
+import top.colter.bilibili.data.video.BiliVideoDownloadSizeOptions
 import top.colter.bilibili.data.video.BiliVideoDownloadStreamType
 import top.colter.bilibili.data.video.BiliVideoPage
 import top.colter.bilibili.data.video.BiliVideoPlayUrl
 import top.colter.bilibili.data.video.BiliVideoQuality
+import top.colter.bilibili.data.video.BiliVideoStreamSize
 import top.colter.bilibili.data.video.requestCode
 import top.colter.bilibili.exception.BiliDownloadException
 import java.io.File
@@ -145,6 +152,83 @@ public fun BiliVideoPlayUrl.selectBestAudioStream(): BiliVideoDashStream? {
     return dash?.audio.orEmpty()
         .filter { it.urls.isNotEmpty() }
         .maxWithOrNull(compareBy<BiliVideoDashStream> { it.bandwidth ?: 0L }.thenBy { it.id })
+}
+
+/**
+ * ## 探测普通投稿视频下载大小
+ *
+ * 不写入文件，只探测当前选中视频/音频流的大小。服务端未提供长度时，对应大小为 null。
+ */
+public suspend fun BiliClient.probeVideoDownloadSize(
+    aid: Long? = null,
+    bvid: String? = null,
+    cid: Long? = null,
+    page: Int = 1,
+    quality: BiliVideoQuality = BiliVideoQuality.AUTO_HIGHEST,
+    fnval: Int = 4048,
+    fourk: Boolean = true
+): BiliVideoDownloadSize {
+    return probeVideoDownloadSize(
+        BiliVideoDownloadSizeOptions(
+            aid = aid,
+            bvid = bvid,
+            cid = cid,
+            page = page,
+            quality = quality,
+            fnval = fnval,
+            fourk = fourk
+        )
+    )
+}
+
+/**
+ * ## 探测普通投稿视频下载大小
+ */
+public suspend fun BiliClient.probeVideoDownloadSize(
+    options: BiliVideoDownloadSizeOptions
+): BiliVideoDownloadSize {
+    require(options.aid != null || !options.bvid.isNullOrBlank()) { "至少需要传入 aid 或 bvid" }
+    require(options.page > 0) { "page 必须大于 0" }
+
+    val detail = if (options.cid == null) {
+        getVideoDetail(options.aid, options.bvid)
+    } else {
+        null
+    }
+    val resolvedAid = options.aid ?: detail?.aid
+    val resolvedBvid = options.bvid?.takeIf { it.isNotBlank() } ?: detail?.bvid
+    val resolvedCid = options.cid ?: detail?.selectPage(options.page)?.cid
+        ?: throw BiliDownloadException("无法解析第 ${options.page} 个分 P 的 cid")
+    val playUrl = getVideoPlayUrl(
+        aid = resolvedAid,
+        bvid = resolvedBvid,
+        cid = resolvedCid,
+        quality = options.quality,
+        fnval = options.fnval,
+        fourk = options.fourk
+    )
+    return probeVideoDownloadSize(
+        playUrl = playUrl,
+        bvid = resolvedBvid,
+        aid = resolvedAid,
+        quality = options.quality
+    )
+}
+
+/**
+ * ## 使用已有取流信息探测下载大小
+ */
+public suspend fun BiliClient.probeVideoDownloadSize(
+    playUrl: BiliVideoPlayUrl,
+    bvid: String? = null,
+    aid: Long? = null,
+    quality: BiliVideoQuality = BiliVideoQuality.AUTO_HIGHEST
+): BiliVideoDownloadSize {
+    return probeResolvedVideoSize(
+        playUrl = playUrl,
+        referer = videoReferer(aid, bvid),
+        quality = quality
+    )
 }
 
 /**
@@ -315,6 +399,115 @@ private suspend fun BiliClient.downloadResolvedVideo(
 
         throw BiliDownloadException("没有可下载的视频流")
     }
+}
+
+private suspend fun BiliClient.probeResolvedVideoSize(
+    playUrl: BiliVideoPlayUrl,
+    referer: String,
+    quality: BiliVideoQuality
+): BiliVideoDownloadSize {
+    return createDownloadClient().use { streamClient ->
+        if (playUrl.dash?.video.orEmpty().any { it.urls.isNotEmpty() }) {
+            val videoStream = playUrl.selectBestVideoStream(quality)
+            val audioStream = playUrl.selectBestAudioStream()
+            val videoSize = streamClient.probeStreamSize(videoStream.urls, BiliVideoDownloadStreamType.VIDEO, referer)
+            val audioSize = audioStream?.let {
+                streamClient.probeStreamSize(it.urls, BiliVideoDownloadStreamType.AUDIO, referer)
+            }
+            val streamSizes = if (audioStream == null) {
+                listOf(videoSize.sizeBytes)
+            } else {
+                listOf(videoSize.sizeBytes, audioSize?.sizeBytes)
+            }
+
+            return@use BiliVideoDownloadSize(
+                playUrl = playUrl,
+                totalBytes = knownTotal(streamSizes),
+                video = videoSize,
+                audio = audioSize,
+                videoStream = videoStream,
+                audioStream = audioStream
+            )
+        }
+
+        if (playUrl.durl.isNotEmpty()) {
+            val segments = playUrl.durl.sortedBy { it.order }
+            val sizes = segments.map { segment ->
+                val probed = if (segment.size == null) {
+                    streamClient.probeStreamSize(segment.urls, BiliVideoDownloadStreamType.DURL, referer)
+                } else {
+                    BiliVideoStreamSize(BiliVideoDownloadStreamType.DURL, segment.size, segment.url)
+                }
+                probed
+            }
+            return@use BiliVideoDownloadSize(
+                playUrl = playUrl,
+                totalBytes = knownTotal(sizes.map { it.sizeBytes }),
+                durl = sizes,
+                durlSegments = segments
+            )
+        }
+
+        throw BiliDownloadException("没有可探测的视频流")
+    }
+}
+
+private suspend fun HttpClient.probeStreamSize(
+    urls: List<String>,
+    type: BiliVideoDownloadStreamType,
+    referer: String
+): BiliVideoStreamSize {
+    val candidates = urls.filter { it.isNotBlank() }
+    if (candidates.isEmpty()) {
+        throw BiliDownloadException("没有提供可用的 $type 流地址")
+    }
+
+    var firstResult: BiliVideoStreamSize? = null
+    for (url in candidates) {
+        val size = probeUrlSize(url, referer)
+        val result = BiliVideoStreamSize(type, size, url)
+        if (size != null) return result
+        if (firstResult == null) firstResult = result
+    }
+    return firstResult ?: BiliVideoStreamSize(type, null, candidates.first())
+}
+
+private suspend fun HttpClient.probeUrlSize(url: String, referer: String): Long? {
+    runCatching {
+        head(url) {
+            headers[HttpHeaders.Referrer] = referer
+            headers[HttpHeaders.UserAgent] = BILI_BROWSER_USER_AGENT
+        }.downloadSizeFromHeadHeaders()
+    }.getOrNull()?.let { return it }
+
+    return runCatching {
+        val response = get(url) {
+            headers[HttpHeaders.Referrer] = referer
+            headers[HttpHeaders.UserAgent] = BILI_BROWSER_USER_AGENT
+            headers[HttpHeaders.Range] = "bytes=0-0"
+        }
+        val size = response.downloadSizeFromRangeHeaders()
+        response.bodyAsChannel().cancel()
+        size
+    }.getOrNull()
+}
+
+private fun HttpResponse.downloadSizeFromHeadHeaders(): Long? =
+    headers[HttpHeaders.ContentLength]?.toLongOrNull()
+
+private fun HttpResponse.downloadSizeFromRangeHeaders(): Long? {
+    headers[HttpHeaders.ContentRange]?.parseContentRangeSize()?.let { return it }
+    return if (status == HttpStatusCode.OK) headers[HttpHeaders.ContentLength]?.toLongOrNull() else null
+}
+
+private fun String.parseContentRangeSize(): Long? {
+    val total = substringAfterLast('/', missingDelimiterValue = "").trim()
+    return total.takeIf { it.isNotBlank() && it != "*" }?.toLongOrNull()
+}
+
+private fun knownTotal(sizes: List<Long?>?): Long? {
+    if (sizes == null || sizes.any { it == null }) return null
+    return sizes.filterNotNull().sum()
 }
 
 private suspend fun HttpClient.downloadDurlSegments(

@@ -3,12 +3,14 @@ import com.sun.net.httpserver.HttpServer
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import top.colter.bilibili.api.downloadVideo
+import top.colter.bilibili.api.probeVideoDownloadSize
 import top.colter.bilibili.api.selectBestAudioStream
 import top.colter.bilibili.api.selectBestVideoStream
 import top.colter.bilibili.client.BiliClient
 import top.colter.bilibili.data.video.BiliDownloadProgress
 import top.colter.bilibili.data.video.BiliVideoDash
 import top.colter.bilibili.data.video.BiliVideoDashStream
+import top.colter.bilibili.data.video.BiliVideoDurlSegment
 import top.colter.bilibili.data.video.BiliVideoDownloadStreamType
 import top.colter.bilibili.data.video.BiliVideoPlayUrl
 import top.colter.bilibili.data.video.BiliVideoQuality
@@ -97,6 +99,114 @@ internal class VideoDownloadTest {
     }
 
     @Test
+    fun `probe dash stream sizes with referer and user agent`() = runBlocking {
+        val server = LocalVideoServer(
+            videoBytes = "video-bytes".toByteArray(),
+            audioBytes = "audio-bytes".toByteArray()
+        )
+        val client = BiliClient()
+        try {
+            server.start()
+
+            val size = client.probeVideoDownloadSize(
+                playUrl = localDashPlayUrl(server.videoUrl, server.audioUrl),
+                bvid = "BVdownloadtest"
+            )
+
+            assertEquals(22L, size.totalBytes)
+            assertEquals(11L, size.video?.sizeBytes)
+            assertEquals(11L, size.audio?.sizeBytes)
+            assertEquals(BiliVideoDownloadStreamType.VIDEO, size.video?.type)
+            assertEquals(BiliVideoDownloadStreamType.AUDIO, size.audio?.type)
+            assertEquals("https://www.bilibili.com/video/BVdownloadtest", server.referers["/video.m4s"])
+            assertEquals("https://www.bilibili.com/video/BVdownloadtest", server.referers["/audio.m4s"])
+            assertTrue(server.userAgents["/video.m4s"]?.isNotBlank() == true)
+            assertEquals(listOf("HEAD"), server.methods.getValue("/video.m4s").toList())
+            assertEquals(listOf("HEAD"), server.methods.getValue("/audio.m4s").toList())
+        } finally {
+            client.close()
+            server.close()
+        }
+    }
+
+    @Test
+    fun `probe durl size from playurl segment`() = runBlocking {
+        val client = BiliClient()
+        try {
+            val size = client.probeVideoDownloadSize(
+                playUrl = BiliVideoPlayUrl(
+                    durl = listOf(
+                        BiliVideoDurlSegment(
+                            order = 1,
+                            size = 1234L,
+                            url = "https://example.test/video.mp4"
+                        )
+                    )
+                ),
+                bvid = "BVdownloadtest"
+            )
+
+            assertEquals(1234L, size.totalBytes)
+            assertEquals(1234L, size.durl.single().sizeBytes)
+            assertEquals(BiliVideoDownloadStreamType.DURL, size.durl.single().type)
+        } finally {
+            client.close()
+        }
+    }
+
+    @Test
+    fun `probe size falls back to range when head has no length`() = runBlocking {
+        val server = LocalVideoServer(
+            videoBytes = "video-bytes".toByteArray(),
+            audioBytes = ByteArray(0),
+            includeHeadContentLength = false
+        )
+        val client = BiliClient()
+        try {
+            server.start()
+
+            val size = client.probeVideoDownloadSize(
+                playUrl = localDashPlayUrl(server.videoUrl, null),
+                bvid = "BVdownloadtest"
+            )
+
+            assertEquals(11L, size.totalBytes)
+            assertEquals(11L, size.video?.sizeBytes)
+            assertNull(size.audio)
+            assertEquals(listOf("HEAD", "GET"), server.methods.getValue("/video.m4s").toList())
+        } finally {
+            client.close()
+            server.close()
+        }
+    }
+
+    @Test
+    fun `probe range without content range keeps size unknown`() = runBlocking {
+        val server = LocalVideoServer(
+            videoBytes = "video-bytes".toByteArray(),
+            audioBytes = ByteArray(0),
+            includeHeadContentLength = false,
+            includeRangeContentRange = false
+        )
+        val client = BiliClient()
+        try {
+            server.start()
+
+            val size = client.probeVideoDownloadSize(
+                playUrl = localDashPlayUrl(server.videoUrl, null),
+                bvid = "BVdownloadtest"
+            )
+
+            assertNull(size.totalBytes)
+            assertNull(size.video?.sizeBytes)
+            assertEquals(listOf("HEAD", "GET"), server.methods.getValue("/video.m4s").toList())
+        } finally {
+            client.close()
+            server.close()
+        }
+    }
+
+    @Test
     fun `download dash streams with referer header and progress`() = runBlocking {
         val server = LocalVideoServer(
             videoBytes = "video-bytes".toByteArray(),
@@ -171,7 +281,7 @@ internal class VideoDownloadTest {
             )
 
             assertNotNull(result.finalFile)
-            assertTrue(result.finalFile!!.length() > 0)
+            assertTrue(result.finalFile.length() > 0)
             assertNull(result.videoFile)
             assertNull(result.audioFile)
         } finally {
@@ -227,12 +337,16 @@ internal class VideoDownloadTest {
 
     private class LocalVideoServer(
         private val videoBytes: ByteArray,
-        private val audioBytes: ByteArray
+        private val audioBytes: ByteArray,
+        private val includeHeadContentLength: Boolean = true,
+        private val includeRangeContentRange: Boolean = true
     ) : AutoCloseable {
         private val executor = Executors.newCachedThreadPool()
         private val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
 
         val referers: MutableMap<String, String?> = mutableMapOf()
+        val userAgents: MutableMap<String, String?> = mutableMapOf()
+        val methods: MutableMap<String, MutableList<String>> = mutableMapOf()
         val videoUrl: String
             get() = "http://127.0.0.1:${server.address.port}/video.m4s"
         val audioUrl: String
@@ -251,7 +365,30 @@ internal class VideoDownloadTest {
         }
 
         private fun handle(exchange: HttpExchange, bytes: ByteArray) {
-            referers[exchange.requestURI.path] = exchange.requestHeaders.getFirst("Referer")
+            val path = exchange.requestURI.path
+            referers[path] = exchange.requestHeaders.getFirst("Referer")
+            userAgents[path] = exchange.requestHeaders.getFirst("User-Agent")
+            methods.getOrPut(path) { mutableListOf() } += exchange.requestMethod
+
+            if (exchange.requestMethod == "HEAD") {
+                if (includeHeadContentLength) {
+                    exchange.responseHeaders.add("Content-Length", bytes.size.toString())
+                }
+                exchange.sendResponseHeaders(200, -1)
+                exchange.close()
+                return
+            }
+
+            if (exchange.requestHeaders.getFirst("Range") == "bytes=0-0") {
+                val rangeBytes = bytes.take(1).toByteArray()
+                if (includeRangeContentRange) {
+                    exchange.responseHeaders.add("Content-Range", "bytes 0-0/${bytes.size}")
+                }
+                exchange.sendResponseHeaders(206, rangeBytes.size.toLong())
+                exchange.responseBody.use { it.write(rangeBytes) }
+                return
+            }
+
             exchange.sendResponseHeaders(200, bytes.size.toLong())
             exchange.responseBody.use { it.write(bytes) }
         }

@@ -12,6 +12,7 @@ import top.colter.bilibili.api.getLiveStatusBatch
 import top.colter.bilibili.api.getNewDynamic
 import top.colter.bilibili.api.getUserInfoCard
 import top.colter.bilibili.api.getUserNewDynamic
+import top.colter.bilibili.api.probeVideoDownloadSize
 import top.colter.bilibili.client.BiliClient
 import top.colter.bilibili.data.EditCookie
 import top.colter.bilibili.data.toCookie
@@ -102,6 +103,29 @@ internal class ApiTest {
     fun `get user card`(): Unit = runBlocking {
         client.getUserInfoCard(524484462).log { card ->
             appendLine("Header: ${card.header.img.url}")
+        }
+    }
+
+    @Test
+    fun probeVideoDownloadSizeManually(): Unit = runBlocking {
+        Assumptions.assumeTrue(
+            System.getenv("BILI_MANUAL_PROBE") == "true",
+            "设置 BILI_MANUAL_PROBE=true 后运行真实视频大小探测测试"
+        )
+
+        val size = client.probeVideoDownloadSize(
+            bvid = "BV14qVz6tE8L",
+            page = 1,
+            quality = BiliVideoQuality.AUTO_HIGHEST,
+        )
+
+        size.log {
+            appendLine("Total Bytes: ${it.totalBytes ?: "unknown"}")
+            appendLine("Video Bytes: ${it.video?.sizeBytes ?: "unknown"}")
+            appendLine("Audio Bytes: ${it.audio?.sizeBytes ?: "unknown"}")
+            appendLine("Durl Bytes: ${it.durl.joinToString { item -> item.sizeBytes?.toString() ?: "unknown" }}")
+            appendLine("Video Quality: ${it.videoStream?.id ?: "none"}")
+            appendLine("Audio Quality: ${it.audioStream?.id ?: "none"}")
         }
     }
 

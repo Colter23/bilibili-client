@@ -17,6 +17,16 @@ public data class BiliVideoDownloadOptions(
     val keepStreams: Boolean = false
 )
 
+public data class BiliVideoDownloadSizeOptions(
+    val aid: Long? = null,
+    val bvid: String? = null,
+    val cid: Long? = null,
+    val page: Int = 1,
+    val quality: BiliVideoQuality = BiliVideoQuality.AUTO_HIGHEST,
+    val fnval: Int = 4048,
+    val fourk: Boolean = true
+)
+
 public enum class BiliVideoDownloadStreamType {
     VIDEO,
     AUDIO,
@@ -36,6 +46,23 @@ public data class BiliVideoDownloadResult(
     val audioFile: File? = null,
     val finalFile: File? = null,
     val durlFiles: List<File> = emptyList(),
+    val videoStream: BiliVideoDashStream? = null,
+    val audioStream: BiliVideoDashStream? = null,
+    val durlSegments: List<BiliVideoDurlSegment> = emptyList()
+)
+
+public data class BiliVideoStreamSize(
+    val type: BiliVideoDownloadStreamType,
+    val sizeBytes: Long?,
+    val url: String
+)
+
+public data class BiliVideoDownloadSize(
+    val playUrl: BiliVideoPlayUrl,
+    val totalBytes: Long?,
+    val video: BiliVideoStreamSize? = null,
+    val audio: BiliVideoStreamSize? = null,
+    val durl: List<BiliVideoStreamSize> = emptyList(),
     val videoStream: BiliVideoDashStream? = null,
     val audioStream: BiliVideoDashStream? = null,
     val durlSegments: List<BiliVideoDurlSegment> = emptyList()
