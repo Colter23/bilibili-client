@@ -18,12 +18,13 @@ repositories {
 }
 
 dependencies {
+    api("io.ktor:ktor-client-core:3.5.0")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+
     implementation("io.ktor:ktor-client-okhttp:3.5.0")
     implementation("io.ktor:ktor-client-encoding:3.5.0")
     implementation("io.ktor:ktor-client-websockets:3.5.0")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.5.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
-    implementation("com.cronutils:cron-utils:9.2.1")
     implementation(kotlin("reflect"))
 
     testImplementation(kotlin("test"))
@@ -76,7 +77,8 @@ mavenPublishing {
             }
         }
         scm {
-            connection.set("scm:git:git://github.com/Colter23/bilibili-client")
+            connection.set("scm:git:https://github.com/Colter23/bilibili-client.git")
+            developerConnection.set("scm:git:https://github.com/Colter23/bilibili-client.git")
             url.set("https://github.com/Colter23/bilibili-client")
         }
     }
