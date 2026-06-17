@@ -29,6 +29,7 @@ public data class BiliVideo (
     val owner: BaseUser,
     val dynamic: String? = null,
     val cid: Long,
+    val stat: BiliVideoStat? = null,
     val pages: List<BiliVideoPage> = emptyList()
 )
 
