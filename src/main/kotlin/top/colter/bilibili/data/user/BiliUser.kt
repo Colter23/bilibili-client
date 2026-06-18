@@ -33,6 +33,15 @@ public data class BiliUserInfo(
     val header: BiliUserHeader? = null,
 ): BiliUser
 
+
+@Serializable
+public data class BiliUserInfoCard(
+    val card: BiliUserInfo,
+    @SerialName("space")
+    val header: BiliUserHeader,
+)
+
+
 @Serializable
 public data class BiliUserHeader(
     @SerialName("l_img")
@@ -42,10 +51,3 @@ public data class BiliUserHeader(
     public val img: ImageUrl
         get() = image
 }
-
-@Serializable
-public data class BiliUserInfoCard(
-    val card: BiliUserInfo,
-    @SerialName("space")
-    val header: BiliUserHeader,
-)

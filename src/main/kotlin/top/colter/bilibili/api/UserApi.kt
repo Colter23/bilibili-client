@@ -7,6 +7,7 @@ import top.colter.bilibili.client.BiliClient
 import top.colter.bilibili.client.BiliCommonResult
 import top.colter.bilibili.client.getData
 import top.colter.bilibili.client.getDataWithWbi
+import top.colter.bilibili.data.user.BaseUser
 import top.colter.bilibili.data.user.BiliUserInfo
 import top.colter.bilibili.data.user.BiliUserInfoCard
 import top.colter.bilibili.data.user.WbiImg
@@ -88,6 +89,19 @@ public const val CURRENT_USER: String = "$BASE_API/x/space/myinfo"
 public const val CURRENT_USER_NAV: String = "$BASE_API/x/web-interface/nav"
 
 /**
+ * ## 批量获取用户信息(基础信息)
+ *
+ * **Method:** GET
+ *
+ * **Params:** uids=用户ID列表(中间用逗号分隔)
+ *
+ * **Response:** [BiliCommonResult] / [BaseUser]
+ *
+ * **Example:** https://api.vc.bilibili.com/account/v1/user/cards?uids=487550002,487551829
+ */
+public const val USER_BATCH: String = "$BASE_VC_API/account/v1/user/cards"
+
+/**
  * ## 批量获取用户信息
  *
  * **Method:** GET
@@ -96,9 +110,9 @@ public const val CURRENT_USER_NAV: String = "$BASE_API/x/web-interface/nav"
  *
  * **Response:** [BiliCommonResult] / [...]
  *
- * **Example:** https://api.vc.bilibili.com/account/v1/user/cards?uids=487550002,487551829
+ * **Example:** https://api.vc.bilibili.com/x/im/user_infos?uids=2,114514
  */
-public const val USER_INFO_BATCH: String = "$BASE_API/account/v1/user/cards"
+public const val USER_INFO_BATCH: String = "$BASE_VC_API/x/im/user_infos"
 
 /**
  * ## 查询用户视频投稿信息
@@ -181,13 +195,28 @@ public suspend fun BiliClient.getWbi(): WbiImg {
 
 
 /**
- * ## 批量获取用户信息 (!未完善!)
+ * ## 批量获取用户信息(基础信息)
+ *
+ * @param uids 用户 ID 列表
+ *
+ * @see USER_BATCH
+ */
+public suspend fun BiliClient.getUserBatch(uids: Iterable<Long>): List<BaseUser> {
+    val uidList = uids.toList()
+    require(uidList.isNotEmpty()) { "uids 不能为空" }
+    return getData(USER_BATCH) {
+        parameter("uids", uidList.joinIds())
+    }
+}
+
+/**
+ * ## 批量获取用户信息
  *
  * @param uids 用户 ID 列表
  *
  * @see USER_INFO_BATCH
  */
-public suspend fun BiliClient.getUserInfoBatch(uids: Iterable<Long>): JsonElement {
+public suspend fun BiliClient.getUserInfoBatch(uids: Iterable<Long>): List<BiliUserInfo> {
     val uidList = uids.toList()
     require(uidList.isNotEmpty()) { "uids 不能为空" }
     return getData(USER_INFO_BATCH) {
